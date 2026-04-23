@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+node_modules/*
+# Expo / Metro
+.expo/
+.expo-shared/
+.metro/
+web-build/
+.eas/
+
+# Native build outputs
+android/
+ios/
+
+# TypeScript / NativeWind generated files
+nativewind-env.d.ts
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Misc caches
+.turbo/
+coverage/
+dist/
+build/
