@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
-import { storage } from './mmkv';
+import { storage } from './storage';
 
 const supabaseUrl =
   process.env.EXPO_PUBLIC_SUPABASE_URL ?? Constants.expoConfig?.extra?.supabaseUrl ?? '';

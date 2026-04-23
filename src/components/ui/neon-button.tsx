@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect } from 'react';
-import { Pressable, Text, View, type PressableProps } from 'react-native';
+import { Pressable, View, type PressableProps, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import Animated, {
   interpolate,
   useAnimatedStyle,
@@ -9,17 +9,34 @@ import Animated, {
   withSpring
 } from 'react-native-reanimated';
 import { colors, gradients, radii, shadows, typography } from '@/lib/theme';
+import { useResponsiveLayout } from '@/lib/responsive';
 import { cn } from '@/lib/utils';
 import type { ReactNode } from 'react';
+import { AppText } from './app-text';
 
 type NeonButtonProps = PressableProps & {
   label: string;
   icon?: ReactNode;
   className?: string;
+  size?: 'md' | 'lg';
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
 };
 
-export function NeonButton({ label, icon, className, onPress, ...props }: NeonButtonProps) {
+export function NeonButton({
+  label,
+  icon,
+  className,
+  onPress,
+  size = 'md',
+  style,
+  textStyle,
+  ...props
+}: NeonButtonProps) {
+  const layout = useResponsiveLayout();
   const scale = useSharedValue(1);
+  const verticalPadding = size === 'lg' ? layout.compactGutter + 6 : layout.compactGutter + 2;
+  const horizontalPadding = size === 'lg' ? layout.cardPadding + 2 : layout.cardPadding;
 
   useEffect(() => {
     scale.value = withSpring(1, { damping: 14, stiffness: 220 });
@@ -41,7 +58,7 @@ export function NeonButton({ label, icon, className, onPress, ...props }: NeonBu
           scale.value = withSpring(1, { damping: 14, stiffness: 220 });
         }}
         onPress={async (event) => {
-          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
           onPress?.(event);
         }}
         className={cn(className)}
@@ -53,26 +70,32 @@ export function NeonButton({ label, icon, className, onPress, ...props }: NeonBu
           style={[
             {
               borderRadius: radii.xl,
-              paddingVertical: 16,
-              paddingHorizontal: 20,
+              minHeight: layout.minTouchTarget,
+              paddingVertical: verticalPadding,
+              paddingHorizontal: horizontalPadding,
               borderWidth: 1,
-              borderColor: 'rgba(0, 255, 133, 0.45)',
+              borderColor: 'rgba(255, 255, 255, 0.24)',
               ...shadows.neon
-            }
+            },
+            style
           ]}
         >
-          <View className="flex-row items-center justify-center gap-3">
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: layout.compactGutter }}>
             {icon}
-            <Text
-              style={{
-                color: colors.background,
-                fontFamily: typography.subtitle,
-                fontSize: 16,
-                letterSpacing: 0.2
-              }}
+            <AppText
+              variant="bodyStrong"
+              style={[
+                {
+                  color: colors.background,
+                  fontFamily: typography.subtitle,
+                  letterSpacing: 0.2
+                },
+                textStyle
+              ]}
+              numberOfLines={1}
             >
               {label}
-            </Text>
+            </AppText>
           </View>
         </LinearGradient>
       </Pressable>

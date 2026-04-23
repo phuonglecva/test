@@ -1,15 +1,16 @@
 import { BlurView } from 'expo-blur';
 import type { PropsWithChildren } from 'react';
-import { View } from 'react-native';
+import { View, type StyleProp, type ViewStyle } from 'react-native';
 import { colors, radii, shadows } from '@/lib/theme';
 import { cn } from '@/lib/utils';
 
 type GlassCardProps = PropsWithChildren<{
   className?: string;
   intensity?: number;
+  style?: StyleProp<ViewStyle>;
 }>;
 
-export function GlassCard({ children, className, intensity = 26 }: GlassCardProps) {
+export function GlassCard({ children, className, intensity = 20, style }: GlassCardProps) {
   return (
     <View
       style={[
@@ -20,11 +21,12 @@ export function GlassCard({ children, className, intensity = 26 }: GlassCardProp
           borderColor: colors.surfaceBorder,
           overflow: 'hidden',
           ...shadows.glass
-        }
+        },
+        style
       ]}
       className={cn(className)}
     >
-      <BlurView intensity={intensity} tint="dark" style={{ flex: 1 }}>
+      <BlurView intensity={intensity} tint="dark" style={{ overflow: 'hidden' }}>
         {children}
       </BlurView>
     </View>

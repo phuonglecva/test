@@ -1,170 +1,190 @@
 import { router } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRef, useState } from 'react';
-import { Dimensions, FlatList, Text, View } from 'react-native';
-import type { ReactNode } from 'react';
 import { ArrowRight, Dumbbell, Sparkles, TrendingUp, Users } from 'lucide-react-native';
+import type { ReactNode } from 'react';
+import { useRef, useState } from 'react';
+import { FlatList, View } from 'react-native';
+import { AppText, LogoMark, NeonButton, ResponsiveScreen } from '@/components/ui';
 import { ONBOARDING_SLIDES } from '@/lib/constants';
-import { colors, gradients, radii, shadows, typography } from '@/lib/theme';
+import { clamp, useResponsiveLayout } from '@/lib/responsive';
+import { colors, radii, shadows } from '@/lib/theme';
 import { useAppStore } from '@/store/useAppStore';
-import { NeonButton } from '@/components/ui/neon-button';
-
-const { width } = Dimensions.get('window');
 
 export default function OnboardingScreen() {
+  const layout = useResponsiveLayout();
   const listRef = useRef<FlatList<(typeof ONBOARDING_SLIDES)[number]>>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const setHasSeenOnboarding = useAppStore((state) => state.setHasSeenOnboarding);
+  const slideGap = layout.gutter;
+  const slideWidth = layout.contentWidth;
+  const availableCardHeight =
+    layout.height - layout.safeTop - layout.safeBottom - layout.pagePadding * 2 - layout.minTouchTarget * 3.8;
+  const cardMinHeight = clamp(
+    availableCardHeight,
+    layout.isLandscape && !layout.isTablet ? 260 : 380,
+    layout.isTablet ? 620 : 540
+  );
+  const heroIconSize = layout.isCompact ? 86 : layout.isTablet ? 124 : 104;
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <LinearGradient colors={gradients.hero as unknown as [string, string, string]} style={{ flex: 1 }}>
+    <ResponsiveScreen bottomInset="none" contentContainerStyle={{ flexGrow: 1, paddingBottom: layout.safeBottom + layout.pagePadding }}>
+      <View>
         <View
           style={{
-            position: 'absolute',
-            top: 80,
-            right: -50,
-            width: 180,
-            height: 180,
-            borderRadius: 999,
-            backgroundColor: 'rgba(0,255,133,0.12)'
+            marginBottom: layout.gutter,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: layout.gutter
           }}
-        />
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 120,
-            left: -40,
-            width: 160,
-            height: 160,
-            borderRadius: 999,
-            backgroundColor: 'rgba(255,149,0,0.10)'
-          }}
-        />
-
-        <View className="flex-1 px-5 pt-16">
-          <View className="mb-6 flex-row items-center justify-between">
-            <Text style={{ color: colors.text, fontFamily: typography.title, fontSize: 24 }}>
-              Gym Buddy
-            </Text>
-            <View className="rounded-full border border-white/10 bg-white/5 px-3 py-2">
-              <Text style={{ color: colors.neon, fontFamily: typography.subtitle, fontSize: 12 }}>
-                AI Companion
-              </Text>
-            </View>
-          </View>
-
-          <FlatList
-            ref={listRef}
-            data={ONBOARDING_SLIDES}
-            keyExtractor={(item) => item.id}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={(event) => {
-              const index = Math.round(event.nativeEvent.contentOffset.x / width);
-              setActiveIndex(index);
+        >
+          <LogoMark label="Gym Buddy" />
+          <View
+            style={{
+              minHeight: layout.minTouchTarget,
+              borderRadius: 999,
+              borderWidth: 1,
+              borderColor: colors.surfaceBorder,
+              backgroundColor: 'rgba(255,255,255,0.06)',
+              paddingHorizontal: layout.compactGutter,
+              paddingVertical: Math.max(6, layout.compactGutter * 0.65),
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
-            renderItem={({ item }) => (
-              <View style={{ width: width - 40 }} className="mr-5">
-                <View
-                  style={[
-                    {
-                      minHeight: 520,
-                      borderRadius: radii.xl,
-                      borderWidth: 1,
-                      borderColor: colors.surfaceBorder,
-                      backgroundColor: colors.surface,
-                      padding: 20,
-                      overflow: 'hidden',
-                      ...shadows.glass
-                    }
-                  ]}
-                >
-                  <View className="flex-1 justify-between">
-                    <View className="items-center pt-4">
-                      <View className="mb-5 rounded-[34px] border border-white/10 bg-white/5 p-5">
-                        <View className="h-28 w-28 items-center justify-center rounded-[28px] bg-black/30">
-                          <Sparkles color={colors.neon} size={42} />
-                        </View>
-                      </View>
-                      <View className="rounded-full border border-neon/30 bg-neon/10 px-4 py-2">
-                        <Text style={{ color: colors.neon, fontFamily: typography.subtitle, fontSize: 12 }}>
-                          {item.accent}
-                        </Text>
+          >
+            <AppText variant="caption" style={{ color: colors.neon, fontFamily: 'Inter_600SemiBold' }} numberOfLines={1}>
+              AI Companion
+            </AppText>
+          </View>
+        </View>
+
+        <FlatList
+          ref={listRef}
+          data={ONBOARDING_SLIDES}
+          keyExtractor={(item) => item.id}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={slideWidth + slideGap}
+          decelerationRate="fast"
+          keyboardShouldPersistTaps="handled"
+          onMomentumScrollEnd={(event) => {
+            const index = Math.round(event.nativeEvent.contentOffset.x / (slideWidth + slideGap));
+            setActiveIndex(index);
+          }}
+          renderItem={({ item }) => (
+            <View style={{ width: slideWidth, marginRight: slideGap }}>
+              <View
+                style={{
+                  minHeight: cardMinHeight,
+                  borderRadius: radii.xl,
+                  borderWidth: 1,
+                  borderColor: colors.surfaceBorder,
+                  backgroundColor: colors.surface,
+                  padding: layout.cardPadding,
+                  overflow: 'hidden',
+                  ...shadows.glass
+                }}
+              >
+                <View style={{ flex: 1, justifyContent: 'space-between', gap: layout.sectionGap }}>
+                  <View style={{ alignItems: 'center', paddingTop: layout.compactGutter }}>
+                    <View
+                      style={{
+                        marginBottom: layout.gutter,
+                        borderRadius: radii.lg,
+                        borderWidth: 1,
+                        borderColor: colors.surfaceBorder,
+                        backgroundColor: 'rgba(255,255,255,0.05)',
+                        padding: layout.cardPadding
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: heroIconSize,
+                          aspectRatio: 1,
+                          borderRadius: radii.lg,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: 'rgba(0,0,0,0.30)'
+                        }}
+                      >
+                        <Sparkles color={colors.neon} size={Math.round(heroIconSize * 0.38)} />
                       </View>
                     </View>
+                    <FeatureChip icon={<Dumbbell color={colors.neon} size={14} />} label={item.accent} />
+                  </View>
 
-                    <View>
-                      <Text
-                        style={{
-                          color: colors.text,
-                          fontFamily: typography.title,
-                          fontSize: 34,
-                          lineHeight: 42
-                        }}
-                      >
-                        {item.title}
-                      </Text>
-                      <Text
-                        style={{
-                          color: colors.textMuted,
-                          fontFamily: typography.body,
-                          fontSize: 16,
-                          lineHeight: 24,
-                          marginTop: 12
-                        }}
-                      >
-                        {item.subtitle}
-                      </Text>
+                  <View>
+                    <AppText variant="headline" numberOfLines={4}>
+                      {item.title}
+                    </AppText>
+                    <AppText variant="body" color="textMuted" style={{ marginTop: layout.compactGutter }}>
+                      {item.subtitle}
+                    </AppText>
 
-                      <View className="mt-8 flex-row flex-wrap gap-3">
-                        <FeatureChip icon={<Dumbbell color={colors.neon} size={14} />} label="Workout AI" />
-                        <FeatureChip icon={<TrendingUp color={colors.orange} size={14} />} label="Progress" />
-                        <FeatureChip icon={<Users color={colors.neon} size={14} />} label="Find Buddy" />
-                      </View>
+                    <View style={{ marginTop: layout.gutter, flexDirection: 'row', flexWrap: 'wrap', gap: layout.compactGutter }}>
+                      <FeatureChip icon={<Dumbbell color={colors.neon} size={14} />} label="Workout AI" />
+                      <FeatureChip icon={<TrendingUp color={colors.orange} size={14} />} label="Progress" />
+                      <FeatureChip icon={<Users color={colors.neon} size={14} />} label="Find Buddy" />
                     </View>
                   </View>
                 </View>
               </View>
-            )}
-          />
+            </View>
+          )}
+        />
 
-          <View className="mt-6 flex-row items-center justify-center gap-2">
-            {ONBOARDING_SLIDES.map((slide, index) => (
-              <View
-                key={slide.id}
-                style={{
-                  width: activeIndex === index ? 26 : 8,
-                  height: 8,
-                  borderRadius: 999,
-                  backgroundColor: activeIndex === index ? colors.neon : 'rgba(255,255,255,0.18)'
-                }}
-              />
-            ))}
-          </View>
-
-          <View className="mt-8 pb-8">
-            <NeonButton
-              label="Bắt đầu miễn phí"
-              icon={<ArrowRight color={colors.background} size={18} />}
-              onPress={() => {
-                setHasSeenOnboarding(true);
-                router.replace('/home');
+        <View style={{ marginTop: layout.gutter, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: layout.compactGutter }}>
+          {ONBOARDING_SLIDES.map((slide, index) => (
+            <View
+              key={slide.id}
+              style={{
+                width: activeIndex === index ? layout.minTouchTarget * 0.6 : 8,
+                height: Math.max(6, layout.compactGutter * 0.7),
+                borderRadius: 999,
+                backgroundColor: activeIndex === index ? colors.neon : 'rgba(255,255,255,0.18)'
               }}
             />
-          </View>
+          ))}
         </View>
-      </LinearGradient>
-    </View>
+
+        <View style={{ marginTop: layout.gutter }}>
+          <NeonButton
+            size="lg"
+            label="Bắt đầu miễn phí"
+            icon={<ArrowRight color={colors.background} size={18} />}
+            onPress={() => {
+              setHasSeenOnboarding(true);
+              router.replace('/home');
+            }}
+          />
+        </View>
+      </View>
+    </ResponsiveScreen>
   );
 }
 
 function FeatureChip({ icon, label }: { icon: ReactNode; label: string }) {
+  const layout = useResponsiveLayout();
+
   return (
-    <View className="flex-row items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2">
+    <View
+      style={{
+        minHeight: layout.minTouchTarget,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: layout.compactGutter / 2,
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: colors.surfaceBorder,
+        backgroundColor: 'rgba(255,255,255,0.06)',
+        paddingHorizontal: layout.compactGutter,
+        paddingVertical: Math.max(6, layout.compactGutter * 0.65)
+      }}
+    >
       {icon}
-      <Text style={{ color: colors.text, fontFamily: typography.subtitle, fontSize: 12 }}>{label}</Text>
+      <AppText variant="caption" numberOfLines={1}>
+        {label}
+      </AppText>
     </View>
   );
 }

@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { colors, typography } from '@/lib/theme';
+import { AppText } from './app-text';
 
 type ProgressRingProps = {
   size?: number;
@@ -20,9 +21,10 @@ export function ProgressRing({
   value,
   accent = colors.neon
 }: ProgressRingProps) {
+  const safeProgress = Math.max(0, Math.min(progress, 1));
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = useMemo(() => circumference * (1 - progress), [circumference, progress]);
+  const strokeDashoffset = useMemo(() => circumference * (1 - safeProgress), [circumference, safeProgress]);
 
   return (
     <View style={{ width: size, height: size }} className="items-center justify-center">
@@ -49,10 +51,12 @@ export function ProgressRing({
         />
       </Svg>
       <View className="absolute items-center">
-        <Text style={{ color: colors.text, fontFamily: typography.title, fontSize: 28 }}>{value}</Text>
-        <Text style={{ color: colors.textMuted, fontFamily: typography.body, fontSize: 12 }}>
+        <AppText style={{ color: colors.text, fontFamily: typography.title, fontSize: size > 100 ? 28 : 22 }}>
+          {value}
+        </AppText>
+        <AppText variant="caption" style={{ color: colors.textMuted, fontFamily: typography.body }}>
           {label}
-        </Text>
+        </AppText>
       </View>
     </View>
   );

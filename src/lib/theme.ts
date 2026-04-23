@@ -1,7 +1,7 @@
 export const colors = {
-  background: '#0F0F0F',
-  surface: 'rgba(21, 21, 21, 0.78)',
-  surfaceStrong: 'rgba(29, 29, 29, 0.95)',
+  background: '#080A09',
+  surface: 'rgba(19, 23, 21, 0.92)',
+  surfaceStrong: 'rgba(24, 29, 26, 0.98)',
   surfaceBorder: 'rgba(255, 255, 255, 0.08)',
   neon: '#00FF85',
   neonSoft: 'rgba(0, 255, 133, 0.14)',
@@ -16,10 +16,11 @@ export const colors = {
 } as const;
 
 export const gradients = {
-  hero: ['#0F0F0F', '#111111', '#0F0F0F'],
-  neon: ['rgba(0,255,133,0.22)', 'rgba(0,255,133,0.04)'],
+  hero: ['#070908', '#111A15', '#070908'],
+  neon: ['#00FF85', '#7BFFC1'],
   orange: ['rgba(255,149,0,0.24)', 'rgba(255,149,0,0.04)'],
-  card: ['rgba(255,255,255,0.10)', 'rgba(255,255,255,0.03)']
+  card: ['rgba(255,255,255,0.10)', 'rgba(255,255,255,0.03)'],
+  panel: ['rgba(0,255,133,0.13)', 'rgba(255,149,0,0.08)', 'rgba(255,255,255,0.03)']
 } as const;
 
 export const radii = {

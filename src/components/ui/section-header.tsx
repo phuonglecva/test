@@ -1,29 +1,48 @@
-import { Text, View } from 'react-native';
-import { colors, typography } from '@/lib/theme';
+import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
+import { colors } from '@/lib/theme';
+import { useResponsiveLayout } from '@/lib/responsive';
+import { AppText } from './app-text';
 
 type SectionHeaderProps = {
   title: string;
   subtitle?: string;
   actionLabel?: string;
+  onActionPress?: () => void;
+  style?: StyleProp<ViewStyle>;
 };
 
-export function SectionHeader({ title, subtitle, actionLabel }: SectionHeaderProps) {
+export function SectionHeader({ title, subtitle, actionLabel, onActionPress, style }: SectionHeaderProps) {
+  const layout = useResponsiveLayout();
+
   return (
-    <View className="mb-4 flex-row items-end justify-between">
-      <View className="flex-1 pr-4">
-        <Text style={{ color: colors.text, fontFamily: typography.subtitle, fontSize: 18 }}>
+    <View
+      style={[
+        {
+          marginBottom: layout.compactGutter,
+          flexDirection: 'row',
+          alignItems: 'flex-end',
+          justifyContent: 'space-between',
+          gap: layout.compactGutter
+        },
+        style
+      ]}
+    >
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <AppText variant="title" style={{ color: colors.text }} numberOfLines={2}>
           {title}
-        </Text>
+        </AppText>
         {subtitle ? (
-          <Text style={{ color: colors.textMuted, fontFamily: typography.body, fontSize: 13, marginTop: 4 }}>
+          <AppText variant="caption" style={{ color: colors.textMuted, marginTop: layout.compactGutter / 2 }}>
             {subtitle}
-          </Text>
+          </AppText>
         ) : null}
       </View>
       {actionLabel ? (
-        <Text style={{ color: colors.neon, fontFamily: typography.subtitle, fontSize: 13 }}>
-          {actionLabel}
-        </Text>
+        <Pressable hitSlop={10} onPress={onActionPress}>
+          <AppText variant="bodyStrong" style={{ color: colors.neon }} numberOfLines={1}>
+            {actionLabel}
+          </AppText>
+        </Pressable>
       ) : null}
     </View>
   );

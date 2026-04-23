@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { storage } from '@/lib/mmkv';
+import { storage } from '@/lib/storage';
 import type { AppStats } from '@/types/app';
 
 type AppState = {

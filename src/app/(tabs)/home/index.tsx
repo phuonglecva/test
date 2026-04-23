@@ -1,282 +1,328 @@
-import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
-import { Bell, Flame, MessageCircle, Play, Sparkles, Zap } from 'lucide-react-native';
-import { APP_GREETING, HOME_METRICS } from '@/lib/constants';
-import { colors, gradients, radii, shadows, typography } from '@/lib/theme';
-import { formatDateLabel, getGreetingLabel } from '@/lib/utils';
-import { useAppStore } from '@/store/useAppStore';
-import { GlassCard } from '@/components/ui/glass-card';
-import { NeonButton } from '@/components/ui/neon-button';
-import { ProgressRing } from '@/components/ui/progress-ring';
-import { SectionHeader } from '@/components/ui/section-header';
+import { router } from 'expo-router';
+import { Bell, Bot, MessageCircle, Play, Sparkles, Zap } from 'lucide-react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { WorkoutCard } from '@/components/home';
-
-const recommendedWorkouts = [
-  {
-    id: 'push-power',
-    title: 'Push Power',
-    subtitle: 'Ngực, vai, tay sau với nhịp độ mạnh mẽ và volume cao.',
-    minutes: 52,
-    accent: 'neon' as const
-  },
-  {
-    id: 'pull-hypertrophy',
-    title: 'Pull Hypertrophy',
-    subtitle: 'Tập trung lưng xô, rear delts và cải thiện độ dày cơ lưng.',
-    minutes: 58,
-    accent: 'orange' as const
-  },
-  {
-    id: 'legs-complete',
-    title: 'Leg Day Complete',
-    subtitle: 'Squat pattern, hinge, unilateral work và finisher cháy đùi.',
-    minutes: 66,
-    accent: 'neon' as const
-  }
-];
+import { AppText, GlassCard, LogoMark, NeonButton, ProgressRing, ResponsiveScreen, SectionHeader } from '@/components/ui';
+import { APP_GREETING } from '@/lib/constants';
+import { minTouchTarget, useResponsiveLayout } from '@/lib/responsive';
+import { colors, gradients, radii, shadows } from '@/lib/theme';
+import { formatDateLabel, getGreetingLabel } from '@/lib/utils';
+import { mockAiSuggestions, mockMetrics, mockRecommendedWorkouts, mockTodayPlan, mockUser } from '@/data/mock-app';
+import { useAppStore } from '@/store/useAppStore';
 
 export default function HomeScreen() {
-  const stats = useAppStore((state) => state.stats);
-  const profileName = useAppStore((state) => state.profileName);
-  const [greeting, setGreeting] = useState('Sáng tốt lành');
-
-  useEffect(() => {
-    setGreeting(getGreetingLabel(new Date().getHours()));
-  }, []);
+  const layout = useResponsiveLayout();
+  const profileName = useAppStore((state) => state.profileName) || mockUser.name;
+  const heroDirection = layout.isCompact || (layout.isLandscape && !layout.isTablet) ? 'column' : 'row';
+  const workoutCardWidth = layout.isTablet
+    ? Math.min(360, layout.contentWidth * 0.46)
+    : Math.min(320, layout.contentWidth * 0.86);
+  const fabSize = Math.max(minTouchTarget, layout.isCompact ? 54 : 58);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <LinearGradient colors={gradients.hero as unknown as [string, string, string]} style={{ flex: 1 }}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 120 }}
-        >
-          <View className="px-5 pt-14">
-            <View className="mb-5 flex-row items-center justify-between">
-              <View>
-                <Text style={{ color: colors.textMuted, fontFamily: typography.body, fontSize: 13 }}>
-                  {formatDateLabel(new Date())}
-                </Text>
-                <Text style={{ color: colors.text, fontFamily: typography.title, fontSize: 24, marginTop: 6 }}>
-                  {APP_GREETING}
-                </Text>
-                <Text style={{ color: colors.textMuted, fontFamily: typography.body, fontSize: 13, marginTop: 4 }}>
-                  {greeting} - {profileName}
-                </Text>
-              </View>
-
-              <View className="flex-row items-center gap-3">
-                <Pressable
-                  className="h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5"
-                  onPress={() => router.push('/profile')}
-                >
-                  <Bell color={colors.text} size={18} />
-                </Pressable>
-                <View className="flex-row items-center gap-2 rounded-2xl border border-orange-500/20 bg-orange-500/10 px-3 py-2">
-                  <Flame color={colors.orange} size={16} />
-                  <Text style={{ color: colors.text, fontFamily: typography.subtitle, fontSize: 13 }}>
-                    {stats.streakDays}d
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            <GlassCard className="mb-5 overflow-hidden">
-              <View className="px-5 py-5">
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-1 pr-4">
-                    <View className="mb-3 flex-row items-center gap-2">
-                      <View className="rounded-full bg-neon/10 px-3 py-1">
-                        <Text style={{ color: colors.neon, fontFamily: typography.subtitle, fontSize: 12 }}>
-                          LIVE
-                        </Text>
-                      </View>
-                      <View className="rounded-full bg-white/5 px-3 py-1">
-                        <Text style={{ color: colors.textMuted, fontFamily: typography.subtitle, fontSize: 12 }}>
-                          AI Coach online
-                        </Text>
-                      </View>
-                    </View>
-                    <Text
-                      style={{
-                        color: colors.text,
-                        fontFamily: typography.title,
-                        fontSize: 28,
-                        lineHeight: 34
-                      }}
-                    >
-                      Start Workout
-                    </Text>
-                    <Text
-                      style={{
-                        color: colors.textMuted,
-                        fontFamily: typography.body,
-                        fontSize: 14,
-                        marginTop: 10,
-                        lineHeight: 21
-                      }}
-                    >
-                      Sẵn sàng vào bài, theo dõi volume, PR và nhịp tim trong một flow mượt như đang có HLV thật.
-                    </Text>
-                  </View>
-
-                  <View className="items-center">
-                    <ProgressRing
-                      progress={0.74}
-                      label="Goal"
-                      value="74%"
-                      accent={colors.neon}
-                    />
-                  </View>
-                </View>
-
-                <View className="mt-5 flex-row gap-3">
-                  {HOME_METRICS.map((metric) => (
-                    <View
-                      key={metric.label}
-                      style={{
-                        flex: 1,
-                        borderRadius: radii.lg,
-                        backgroundColor: 'rgba(255,255,255,0.04)',
-                        borderWidth: 1,
-                        borderColor: 'rgba(255,255,255,0.06)',
-                        padding: 12
-                      }}
-                    >
-                      <Text style={{ color: colors.textMuted, fontFamily: typography.body, fontSize: 11 }}>
-                        {metric.label}
-                      </Text>
-                      <Text style={{ color: colors.text, fontFamily: typography.title, fontSize: 22, marginTop: 8 }}>
-                        {metric.value}
-                      </Text>
-                      <Text style={{ color: colors.neon, fontFamily: typography.subtitle, fontSize: 11, marginTop: 6 }}>
-                        {metric.delta}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-
-                <View className="mt-5">
-                  <NeonButton
-                    label="Start Workout"
-                    icon={<Play color={colors.background} fill={colors.background} size={18} />}
-                    onPress={() => router.push('/train')}
-                  />
-                </View>
-              </View>
-            </GlassCard>
-
-            <SectionHeader
-              title="Recommended Workouts"
-              subtitle="Cá nhân hóa theo lịch sử tập và mục tiêu của bạn"
-              actionLabel="See all"
-            />
-
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-5 px-5">
-              {recommendedWorkouts.map((workout) => (
-                <WorkoutCard
-                  key={workout.id}
-                  title={workout.title}
-                  subtitle={workout.subtitle}
-                  minutes={workout.minutes}
-                  accent={workout.accent}
-                />
-              ))}
-            </ScrollView>
-
-            <View className="mt-5 flex-row gap-3">
-              <GlassCard className="flex-1">
-                <View className="p-4">
-                  <Text style={{ color: colors.textMuted, fontFamily: typography.body, fontSize: 12 }}>
-                    Daily Focus
-                  </Text>
-                  <Text style={{ color: colors.text, fontFamily: typography.title, fontSize: 18, marginTop: 6 }}>
-                    Chest + Triceps
-                  </Text>
-                  <Text style={{ color: colors.textMuted, fontFamily: typography.body, fontSize: 13, marginTop: 8, lineHeight: 19 }}>
-                    18 sets, 7 exercises, 91% adherence
-                  </Text>
-                </View>
-              </GlassCard>
-
-              <GlassCard className="w-[118px]">
-                <View className="items-center justify-center p-4">
-                  <View className="mb-2 rounded-full bg-neon/10 p-3">
-                    <Zap color={colors.neon} size={18} />
-                  </View>
-                  <Text style={{ color: colors.text, fontFamily: typography.title, fontSize: 18 }}>
-                    92
-                  </Text>
-                  <Text style={{ color: colors.textMuted, fontFamily: typography.body, fontSize: 12 }}>
-                    Energy
-                  </Text>
-                </View>
-              </GlassCard>
-            </View>
-
-            <View className="mt-6">
-              <SectionHeader title="AI đang gợi ý" subtitle="Dựa trên volume, phục hồi và thói quen gần đây" />
-              <GlassCard>
-                <View className="p-4">
-                  <View className="mb-3 flex-row items-center gap-2">
-                    <View className="rounded-full bg-neon/10 p-2">
-                      <Sparkles color={colors.neon} size={16} />
-                    </View>
-                    <Text style={{ color: colors.text, fontFamily: typography.subtitle, fontSize: 14 }}>
-                      Bạn đang thiếu volume ở lưng giữa
-                    </Text>
-                  </View>
-                  <Text
-                    style={{
-                      color: colors.textMuted,
-                      fontFamily: typography.body,
-                      fontSize: 13,
-                      lineHeight: 20
-                    }}
-                  >
-                    Gợi ý thêm 2 set chest-supported row và 1 finisher face pull để cân bằng upper back.
-                  </Text>
-                </View>
-              </GlassCard>
-            </View>
-          </View>
-        </ScrollView>
-
+    <ResponsiveScreen
+      floating={
         <Pressable
           onPress={() => router.push('/train')}
-          style={[
-            {
-              position: 'absolute',
-              right: 18,
-              bottom: 102,
-              width: 62,
-              height: 62,
-              borderRadius: 31,
-              backgroundColor: colors.neon,
-              alignItems: 'center',
-              justifyContent: 'center',
-              ...shadows.neon
-            }
-          ]}
+          style={{
+            position: 'absolute',
+            right: layout.pagePadding,
+            bottom: layout.tabBarHeight + layout.tabBarBottom + layout.compactGutter,
+            width: fabSize,
+            height: fabSize,
+            borderRadius: fabSize / 2,
+            backgroundColor: colors.neon,
+            alignItems: 'center',
+            justifyContent: 'center',
+            ...shadows.neon
+          }}
         >
-          <MessageCircle color={colors.background} size={24} />
+          <MessageCircle color={colors.background} size={Math.round(fabSize * 0.42)} />
           <View
             style={{
               position: 'absolute',
-              top: -4,
-              right: -4,
-              width: 18,
-              height: 18,
-              borderRadius: 9,
+              top: -3,
+              right: -3,
+              width: Math.max(16, fabSize * 0.28),
+              aspectRatio: 1,
+              borderRadius: 999,
               backgroundColor: colors.orange,
               borderWidth: 2,
               borderColor: colors.background
             }}
           />
         </Pressable>
-      </LinearGradient>
+      }
+    >
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: layout.gutter }}>
+        <LogoMark label="Gym Buddy" />
+        <Pressable
+          onPress={() => router.push('/profile')}
+          hitSlop={8}
+          style={{
+            width: layout.minTouchTarget,
+            height: layout.minTouchTarget,
+            borderRadius: radii.sm,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(255,255,255,0.06)',
+            borderWidth: 1,
+            borderColor: colors.surfaceBorder
+          }}
+        >
+          <Bell color={colors.text} size={18} />
+        </Pressable>
+      </View>
+
+      <View style={{ marginTop: layout.gutter }}>
+        <AppText variant="caption" color="textMuted">
+          {formatDateLabel(new Date())} • {getGreetingLabel(new Date().getHours())}, {profileName}
+        </AppText>
+        <AppText variant="headline" style={{ marginTop: layout.compactGutter / 2 }} numberOfLines={3}>
+          {APP_GREETING}
+        </AppText>
+      </View>
+
+      <GlassCard style={{ marginTop: layout.gutter }}>
+        <LinearGradient colors={gradients.panel as unknown as [string, string, string]} style={{ padding: layout.cardPadding }}>
+          <View style={{ flexDirection: heroDirection, gap: layout.gutter, alignItems: 'center' }}>
+            <View style={{ flex: 1, minWidth: 0, width: heroDirection === 'column' ? '100%' : undefined }}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: layout.compactGutter }}>
+                <Pill label="LIVE" color={colors.neon} />
+                <Pill label="Mock connections" color={colors.orange} />
+              </View>
+
+              <AppText variant="title" style={{ marginTop: layout.compactGutter }}>
+                Start Workout
+              </AppText>
+              <AppText variant="body" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }}>
+                Kế hoạch hôm nay đã được dựng bằng mock data để app luôn có nội dung khi backend chưa sẵn sàng.
+              </AppText>
+
+              <View style={{ marginTop: layout.gutter, alignSelf: layout.isCompact ? 'stretch' : 'flex-start' }}>
+                <NeonButton
+                  label="Bắt đầu buổi tập"
+                  icon={<Play color={colors.background} fill={colors.background} size={16} />}
+                  onPress={() => router.push('/train')}
+                />
+              </View>
+            </View>
+
+            <ProgressRing
+              size={layout.isCompact ? 92 : layout.isTablet ? 122 : 106}
+              strokeWidth={10}
+              progress={mockUser.readiness / 100}
+              label="Readiness"
+              value={`${mockUser.readiness}%`}
+              accent={colors.neon}
+            />
+          </View>
+        </LinearGradient>
+      </GlassCard>
+
+      <View style={{ flexDirection: 'row', gap: layout.compactGutter, marginTop: layout.compactGutter }}>
+        {mockMetrics.map((metric) => (
+          <MetricCard key={metric.id} metric={metric} />
+        ))}
+      </View>
+
+      <SectionHeader
+        title="Recommended Workouts"
+        subtitle="Cá nhân hóa từ mock plan cho đến khi AI/backend được nối."
+        actionLabel="See all"
+        onActionPress={() => router.push('/library')}
+        style={{ marginTop: layout.sectionGap }}
+      />
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: layout.gutter, paddingBottom: 2 }}>
+        {mockRecommendedWorkouts.map((workout) => (
+          <WorkoutCard
+            key={workout.id}
+            id={workout.id}
+            title={workout.title}
+            subtitle={workout.subtitle}
+            minutes={workout.minutes}
+            accent={workout.accent}
+            calories={workout.calories}
+            exercises={workout.exercises}
+            imageId={workout.imageId}
+            style={{ width: workoutCardWidth }}
+          />
+        ))}
+      </ScrollView>
+
+      <View
+        style={{
+          marginTop: layout.sectionGap,
+          flexDirection: layout.isCompact ? 'column' : 'row',
+          gap: layout.gutter
+        }}
+      >
+        <GlassCard style={{ flex: 1 }}>
+          <View style={{ padding: layout.cardPadding }}>
+            <AppText variant="caption" color="textMuted">
+              Daily Focus
+            </AppText>
+            <AppText variant="title" style={{ marginTop: layout.compactGutter / 2 }}>
+              Chest + Triceps
+            </AppText>
+            <AppText variant="body" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }}>
+              18 sets • 7 exercises • 91% adherence
+            </AppText>
+          </View>
+        </GlassCard>
+
+        <GlassCard style={{ flex: layout.isCompact ? undefined : 0.42 }}>
+          <View
+            style={{
+              padding: layout.cardPadding,
+              minHeight: layout.minTouchTarget * 2.4,
+              alignItems: layout.isCompact ? 'flex-start' : 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <View style={{ borderRadius: 999, backgroundColor: colors.neonSoft, padding: layout.compactGutter }}>
+              <Zap color={colors.neon} size={18} />
+            </View>
+            <AppText variant="metric" style={{ marginTop: layout.compactGutter }}>
+              92
+            </AppText>
+            <AppText variant="caption" color="textMuted">
+              Energy
+            </AppText>
+          </View>
+        </GlassCard>
+      </View>
+
+      <SectionHeader
+        title="AI đang gợi ý"
+        subtitle="Mock insight để màn không trống khi chưa nối provider."
+        style={{ marginTop: layout.sectionGap }}
+      />
+
+      <View style={{ gap: layout.gutter }}>
+        {mockAiSuggestions.map((suggestion) => (
+          <SuggestionCard key={suggestion.id} suggestion={suggestion} />
+        ))}
+      </View>
+
+      <SectionHeader title="Plan hôm nay" subtitle="Các bài sẵn sàng trong logger." style={{ marginTop: layout.sectionGap }} />
+      <GlassCard>
+        <View style={{ padding: layout.cardPadding, gap: layout.compactGutter }}>
+          {mockTodayPlan.map((item) => (
+            <PlanRow key={item.id} item={item} />
+          ))}
+        </View>
+      </GlassCard>
+    </ResponsiveScreen>
+  );
+}
+
+function Pill({ label, color }: { label: string; color: string }) {
+  const layout = useResponsiveLayout();
+
+  return (
+    <View
+      style={{
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: `${color}55`,
+        backgroundColor: `${color}18`,
+        paddingHorizontal: layout.compactGutter,
+        paddingVertical: Math.max(5, layout.compactGutter * 0.55)
+      }}
+    >
+      <AppText variant="eyebrow" style={{ color }}>
+        {label}
+      </AppText>
+    </View>
+  );
+}
+
+function MetricCard({ metric }: { metric: (typeof mockMetrics)[number] }) {
+  const layout = useResponsiveLayout();
+
+  return (
+    <GlassCard style={{ flex: 1, minWidth: 0 }}>
+      <View style={{ padding: layout.compactGutter, minHeight: layout.minTouchTarget * 2.35 }}>
+        <AppText variant="caption" color="textMuted" numberOfLines={2}>
+          {metric.label}
+        </AppText>
+        <AppText variant="metric" style={{ marginTop: layout.compactGutter / 2 }} numberOfLines={1} adjustsFontSizeToFit>
+          {metric.value}
+        </AppText>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
+          <AppText variant="caption" color="textMuted" numberOfLines={1}>
+            {metric.unit}
+          </AppText>
+          <AppText variant="caption" style={{ color: colors.neon }} numberOfLines={1}>
+            {metric.delta}
+          </AppText>
+        </View>
+      </View>
+    </GlassCard>
+  );
+}
+
+function SuggestionCard({ suggestion }: { suggestion: (typeof mockAiSuggestions)[number] }) {
+  const layout = useResponsiveLayout();
+
+  return (
+    <GlassCard>
+      <View style={{ padding: layout.cardPadding }}>
+        <View style={{ flexDirection: 'row', gap: layout.compactGutter, alignItems: 'flex-start' }}>
+          <View style={{ borderRadius: 999, backgroundColor: colors.neonSoft, padding: layout.compactGutter }}>
+            <Sparkles color={colors.neon} size={16} />
+          </View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: layout.compactGutter }}>
+              <AppText variant="bodyStrong" style={{ flex: 1 }} numberOfLines={2}>
+                {suggestion.title}
+              </AppText>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Bot color={colors.orange} size={14} />
+                <AppText variant="caption" style={{ color: colors.orange }}>
+                  {suggestion.confidence}
+                </AppText>
+              </View>
+            </View>
+            <AppText variant="body" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }}>
+              {suggestion.body}
+            </AppText>
+          </View>
+        </View>
+      </View>
+    </GlassCard>
+  );
+}
+
+function PlanRow({ item }: { item: (typeof mockTodayPlan)[number] }) {
+  const layout = useResponsiveLayout();
+
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: layout.compactGutter,
+        borderRadius: radii.md,
+        backgroundColor: 'rgba(255,255,255,0.04)',
+        padding: layout.compactGutter
+      }}
+    >
+      <View style={{ width: Math.max(4, layout.compactGutter * 0.55), alignSelf: 'stretch', borderRadius: 99, backgroundColor: colors.neon }} />
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <AppText variant="bodyStrong" numberOfLines={1}>
+          {item.name}
+        </AppText>
+        <AppText variant="caption" color="textMuted" style={{ marginTop: layout.compactGutter / 3 }} numberOfLines={1}>
+          {item.sets} • {item.load} • rest {item.rest}
+        </AppText>
+      </View>
+      <AppText variant="caption" style={{ color: item.status === 'AI added' ? colors.orange : colors.neon }} numberOfLines={1}>
+        {item.status}
+      </AppText>
     </View>
   );
 }

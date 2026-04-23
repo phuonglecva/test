@@ -1,30 +1,30 @@
 export const APP_NAME = 'Gym Buddy';
 export const APP_TAGLINE = 'Người bạn tập gym thông minh nhất';
-export const APP_GREETING = 'Chào Shado, hôm nay tập gì?';
+export const APP_GREETING = 'Hôm nay mình tập gì?';
 
 export const ONBOARDING_SLIDES = [
   {
     id: 'hero',
     title: 'Chào mừng đến Gym Buddy',
-    subtitle: 'Người bạn tập gym thông minh nhất',
+    subtitle: 'Một người bạn tập luôn theo sát mục tiêu, lịch tập và tiến độ của bạn.',
     accent: 'AI trainer neon'
   },
   {
     id: 'coach',
     title: 'AI Coach luôn sẵn sàng',
-    subtitle: 'Lập kế hoạch, gợi ý set/reps, tối ưu buổi tập theo mục tiêu.',
+    subtitle: 'Lập kế hoạch, gợi ý set/reps và tối ưu buổi tập theo mục tiêu.',
     accent: 'Real-time guidance'
   },
   {
     id: 'progress',
     title: 'Tracking tiến bộ cực rõ',
-    subtitle: 'Volume, PRs, body weight và streak đều được hiển thị đẹp mắt.',
+    subtitle: 'Volume, PRs, body weight và streak đều được hiển thị dễ hiểu.',
     accent: 'Performance insights'
   },
   {
     id: 'buddy',
     title: 'Form Checker & Find Buddy',
-    subtitle: 'Sửa form bằng AI và kết nối với người tập gần bạn.',
+    subtitle: 'Sửa form bằng AI và kết nối với người tập gần bạn khi backend sẵn sàng.',
     accent: 'Train smarter together'
   }
 ] as const;
