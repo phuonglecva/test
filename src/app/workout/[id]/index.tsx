@@ -5,12 +5,14 @@ import type { ReactNode } from 'react';
 import { Pressable, View } from 'react-native';
 import { AppText, GlassCard, NeonButton, ProgressRing, ResponsiveScreen, SectionHeader } from '@/components/ui';
 import { mockRecommendedWorkouts, mockTodayPlan } from '@/data/mock-app';
+import { useI18n } from '@/lib/i18n';
 import { useResponsiveLayout } from '@/lib/responsive';
 import { colors, gradients, radii } from '@/lib/theme';
 
 export default function WorkoutDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const layout = useResponsiveLayout();
+  const { t } = useI18n();
   const workout = mockRecommendedWorkouts.find((item) => item.id === id) ?? mockRecommendedWorkouts[0];
   const heroDirection = layout.isCompact || (layout.isLandscape && !layout.isTablet) ? 'column' : 'row';
 
@@ -23,7 +25,7 @@ export default function WorkoutDetailScreen() {
           <View style={{ flexDirection: heroDirection, alignItems: 'center', gap: layout.gutter }}>
             <View style={{ flex: 1, minWidth: 0, width: heroDirection === 'column' ? '100%' : undefined }}>
               <AppText variant="eyebrow" style={{ color: colors.neon }}>
-                Mock workout
+                {t('workoutCard.mockPlan')}
               </AppText>
               <AppText variant="headline" style={{ marginTop: layout.compactGutter }}>
                 {workout.title}
@@ -36,21 +38,21 @@ export default function WorkoutDetailScreen() {
               size={layout.isTablet ? 116 : 94}
               strokeWidth={9}
               progress={workout.progress}
-              label="Ready"
+              label={t('common.ready')}
               value={`${Math.round(workout.progress * 100)}%`}
               accent={workout.accent === 'neon' ? colors.neon : colors.orange}
             />
           </View>
 
           <View style={{ flexDirection: layout.isCompact ? 'column' : 'row', gap: layout.compactGutter, marginTop: layout.gutter }}>
-            <WorkoutStat icon={<Clock3 color={colors.neon} size={16} />} label={`${workout.minutes} min`} />
-            <WorkoutStat icon={<Dumbbell color={colors.orange} size={16} />} label={`${workout.exercises} bài`} />
+            <WorkoutStat icon={<Clock3 color={colors.neon} size={16} />} label={`${workout.minutes} ${t('common.minutes')}`} />
+            <WorkoutStat icon={<Dumbbell color={colors.orange} size={16} />} label={`${workout.exercises} ${t('common.exercises')}`} />
             <WorkoutStat icon={<Flame color={colors.neon} size={16} />} label={`${workout.calories} kcal`} />
           </View>
 
           <View style={{ marginTop: layout.gutter }}>
             <NeonButton
-              label="Start this workout"
+              label={t('train.generate')}
               icon={<Play color={colors.background} fill={colors.background} size={16} />}
               onPress={() => router.push('/train')}
             />
@@ -58,7 +60,7 @@ export default function WorkoutDetailScreen() {
         </LinearGradient>
       </GlassCard>
 
-      <SectionHeader title="Exercise blocks" subtitle="Dùng mock data cho logger." style={{ marginTop: layout.sectionGap }} />
+      <SectionHeader title={t('train.exercisesTitle')} subtitle={t('home.todayPlanSubtitle')} style={{ marginTop: layout.sectionGap }} />
       <View style={{ gap: layout.gutter }}>
         {mockTodayPlan.map((item, index) => (
           <GlassCard key={item.id}>
@@ -82,7 +84,7 @@ export default function WorkoutDetailScreen() {
                   {item.name}
                 </AppText>
                 <AppText variant="caption" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }} numberOfLines={1}>
-                  {item.sets} • {item.load} • rest {item.rest}
+                  {item.sets} • {item.load} • {t('common.rest')} {item.rest}
                 </AppText>
               </View>
               <CheckCircle2 color={item.status === 'AI added' ? colors.orange : colors.neon} size={21} />

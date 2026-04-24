@@ -1,10 +1,12 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bot, CheckCircle2, Cloud, Dumbbell, Settings, Shield, Watch } from 'lucide-react-native';
-import { View } from 'react-native';
+import { Bot, CheckCircle2, Cloud, Dumbbell, Globe2, Settings, Shield, Watch } from 'lucide-react-native';
+import { Pressable, View } from 'react-native';
 import { AppText, GlassCard, LogoMark, ProgressRing, ResponsiveScreen, SectionHeader } from '@/components/ui';
+import { useI18n } from '@/lib/i18n';
 import { mockBadges, mockConnections, mockUser } from '@/data/mock-app';
 import { useResponsiveLayout } from '@/lib/responsive';
 import { colors, gradients, radii } from '@/lib/theme';
+import { useAppStore } from '@/store/useAppStore';
 
 const connectionIcons = {
   supabase: Cloud,
@@ -14,13 +16,15 @@ const connectionIcons = {
 
 export default function ProfileScreen() {
   const layout = useResponsiveLayout();
+  const { language, t } = useI18n();
+  const setLanguage = useAppStore((state) => state.setLanguage);
   const profileDirection = layout.isCompact ? 'column' : 'row';
   const readinessDirection = layout.isCompact || (layout.isLandscape && !layout.isTablet) ? 'column' : 'row';
   const avatarSize = layout.isTablet ? 88 : layout.isCompact ? 64 : 72;
 
   return (
     <ResponsiveScreen>
-      <LogoMark label="Profile" />
+      <LogoMark label={t('common.profile')} />
 
       <GlassCard style={{ marginTop: layout.sectionGap }}>
         <LinearGradient colors={gradients.panel as unknown as [string, string, string]} style={{ padding: layout.cardPadding }}>
@@ -57,21 +61,44 @@ export default function ProfileScreen() {
               size={layout.isTablet ? 108 : 88}
               strokeWidth={9}
               progress={mockUser.readiness / 100}
-              label="Ready"
+              label={t('common.ready')}
               value={`${mockUser.readiness}`}
               accent={colors.neon}
             />
             <View style={{ flex: 1, width: readinessDirection === 'column' ? '100%' : undefined }}>
-              <AppText variant="bodyStrong">Plan hiện tại</AppText>
+              <AppText variant="bodyStrong">{t('profile.currentPlan')}</AppText>
               <AppText variant="body" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }}>
-                {mockUser.plan}. Profile này đang lưu local/mock cho đến khi Cloud profile được cấu hình.
+                {t('profile.currentPlanSubtitle', { plan: mockUser.plan })}
               </AppText>
             </View>
           </View>
         </LinearGradient>
       </GlassCard>
 
-      <SectionHeader title="Badges" subtitle="Mock achievements để UI không trống." style={{ marginTop: layout.sectionGap }} />
+      <SectionHeader title={t('profile.settingsTitle')} subtitle={t('profile.settingsSubtitle')} style={{ marginTop: layout.sectionGap }} />
+      <GlassCard>
+        <View style={{ padding: layout.cardPadding, gap: layout.compactGutter }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: layout.compactGutter }}>
+            <Globe2 color={colors.neon} size={18} />
+            <AppText variant="bodyStrong">{t('common.language')}</AppText>
+          </View>
+
+          <View style={{ flexDirection: layout.isCompact ? 'column' : 'row', gap: layout.compactGutter }}>
+            <LanguageOption
+              label={t('common.vietnamese')}
+              active={language === 'vi'}
+              onPress={() => setLanguage('vi')}
+            />
+            <LanguageOption
+              label={t('common.english')}
+              active={language === 'en'}
+              onPress={() => setLanguage('en')}
+            />
+          </View>
+        </View>
+      </GlassCard>
+
+      <SectionHeader title={t('profile.badges')} subtitle={t('profile.badgesSubtitle')} style={{ marginTop: layout.sectionGap }} />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: layout.compactGutter }}>
         {mockBadges.map((badge) => (
           <View
@@ -97,7 +124,7 @@ export default function ProfileScreen() {
         ))}
       </View>
 
-      <SectionHeader title="Connections" subtitle="Các kết nối chưa có key sẽ hiện mock state." style={{ marginTop: layout.sectionGap }} />
+      <SectionHeader title={t('profile.connections')} subtitle={t('profile.connectionsSubtitle')} style={{ marginTop: layout.sectionGap }} />
       <View style={{ gap: layout.gutter }}>
         {mockConnections.map((connection) => {
           const Icon = connectionIcons[connection.id as keyof typeof connectionIcons] ?? Dumbbell;
@@ -137,5 +164,39 @@ export default function ProfileScreen() {
         })}
       </View>
     </ResponsiveScreen>
+  );
+}
+
+function LanguageOption({
+  label,
+  active,
+  onPress
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  const layout = useResponsiveLayout();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{
+        flex: 1,
+        minHeight: layout.minTouchTarget,
+        borderRadius: radii.xl,
+        borderWidth: 1,
+        borderColor: active ? colors.neon : colors.surfaceBorder,
+        backgroundColor: active ? colors.neonSoft : 'rgba(255,255,255,0.04)',
+        paddingHorizontal: layout.cardPadding,
+        paddingVertical: layout.compactGutter + 2,
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}
+    >
+      <AppText variant="bodyStrong" style={{ color: active ? colors.neon : colors.text }}>
+        {label}
+      </AppText>
+    </Pressable>
   );
 }

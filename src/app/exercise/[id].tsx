@@ -4,12 +4,14 @@ import { ArrowLeft, Dumbbell, Info, ListChecks } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
 import { AppText, GlassCard, ResponsiveScreen, SectionHeader } from '@/components/ui';
 import { getExerciseWithMedia } from '@/data/exercises';
+import { useI18n } from '@/lib/i18n';
 import { useResponsiveLayout } from '@/lib/responsive';
 import { colors, radii } from '@/lib/theme';
 
 export default function ExerciseDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const layout = useResponsiveLayout();
+  const { t } = useI18n();
   const exercise = getExerciseWithMedia(id);
   const detailMediaSource = exercise?.media?.gif ?? exercise?.media?.image;
   const detailMediaIsGif = Boolean(exercise?.media?.gif);
@@ -46,32 +48,35 @@ export default function ExerciseDetailScreen() {
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                 <Dumbbell color={colors.neon} size={42} />
                 <AppText variant="bodyStrong" style={{ marginTop: layout.compactGutter }}>
-                  Mock exercise image
+                  {t('exercise.mockImage')}
                 </AppText>
               </View>
             )}
           </View>
 
           <AppText variant="eyebrow" style={{ color: colors.neon, marginTop: layout.gutter }}>
-            {exercise?.body_part ?? 'exercise'}
+            {exercise?.body_part ?? t('common.unknown')}
           </AppText>
           <AppText variant="headline" style={{ marginTop: layout.compactGutter, textTransform: 'capitalize' }}>
-            {exercise?.name ?? 'Exercise not found'}
+            {exercise?.name ?? t('exercise.notFound')}
           </AppText>
           <AppText variant="body" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }}>
             {exercise
-              ? `${exercise.equipment} • target ${exercise.target ?? exercise.category}`
-              : 'Không tìm thấy bài trong dataset, đang hiển thị fallback.'}
+              ? t('exercise.detailMeta', {
+                  equipment: exercise.equipment,
+                  target: exercise.target ?? exercise.category ?? t('common.unknown')
+                })
+              : t('exercise.notFound')}
           </AppText>
           {exercise ? (
             <AppText variant="caption" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }}>
-              {detailMediaIsGif ? 'Detail view is using dataset GIF.' : 'Detail view is using image fallback.'}
+              {detailMediaIsGif ? t('exercise.usingGif') : t('exercise.usingImage')}
             </AppText>
           ) : null}
         </View>
       </GlassCard>
 
-      <SectionHeader title="Technique" subtitle="Instruction local từ dataset." style={{ marginTop: layout.sectionGap }} />
+      <SectionHeader title={t('exercise.technique')} subtitle={t('exercise.techniqueSubtitle')} style={{ marginTop: layout.sectionGap }} />
       <GlassCard>
         <View style={{ padding: layout.cardPadding, gap: layout.gutter }}>
           {(exercise?.instruction_steps?.en ?? []).slice(0, 5).map((step, index) => (
@@ -100,14 +105,14 @@ export default function ExerciseDetailScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: layout.compactGutter }}>
               <Info color={colors.orange} size={18} />
               <AppText variant="body" color="textMuted" style={{ flex: 1 }}>
-                Chưa có hướng dẫn chi tiết cho bài này, app dùng fallback mock để màn không trống.
+                {t('exercise.noTechnique')}
               </AppText>
             </View>
           ) : null}
         </View>
       </GlassCard>
 
-      <SectionHeader title="Muscle groups" style={{ marginTop: layout.sectionGap }} />
+      <SectionHeader title={t('exercise.muscleGroups')} style={{ marginTop: layout.sectionGap }} />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: layout.compactGutter }}>
         {muscleGroups.map((muscle) => (
           <View

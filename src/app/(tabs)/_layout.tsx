@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router';
 import { BookOpen, Dumbbell, House, LineChart, UserRound } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
+import { useI18n } from '@/lib/i18n';
 import { useResponsiveLayout } from '@/lib/responsive';
 import { colors, shadows } from '@/lib/theme';
 
@@ -35,6 +36,7 @@ function TabIcon({ color, focused, children }: TabIconProps) {
 
 export default function TabsLayout() {
   const layout = useResponsiveLayout();
+  const { t } = useI18n();
 
   return (
     <Tabs
@@ -70,7 +72,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="home/index"
         options={{
-          title: 'Home',
+          title: t('common.home'),
           tabBarIcon: ({ color, focused }) => (
             <TabIcon color={color} focused={focused}>
               {(iconColor) => <House color={iconColor} size={20} strokeWidth={2.4} />}
@@ -81,7 +83,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="library/index"
         options={{
-          title: 'Library',
+          title: t('common.library'),
           tabBarIcon: ({ color, focused }) => (
             <TabIcon color={color} focused={focused}>
               {(iconColor) => <BookOpen color={iconColor} size={20} strokeWidth={2.4} />}
@@ -92,7 +94,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="train/index"
         options={{
-          title: 'Train',
+          title: t('common.train'),
           tabBarIcon: ({ color, focused }) => (
             <TabIcon color={color} focused={focused}>
               {(iconColor) => <Dumbbell color={iconColor} size={20} strokeWidth={2.4} />}
@@ -103,7 +105,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="progress/index"
         options={{
-          title: 'Progress',
+          title: t('common.progress'),
           tabBarIcon: ({ color, focused }) => (
             <TabIcon color={color} focused={focused}>
               {(iconColor) => <LineChart color={iconColor} size={20} strokeWidth={2.4} />}
@@ -114,7 +116,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile/index"
         options={{
-          title: 'Profile',
+          title: t('common.profile'),
           tabBarIcon: ({ color, focused }) => (
             <TabIcon color={color} focused={focused}>
               {(iconColor) => <UserRound color={iconColor} size={20} strokeWidth={2.4} />}

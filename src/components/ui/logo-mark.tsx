@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Dumbbell, Sparkles } from 'lucide-react-native';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
+import { useI18n } from '@/lib/i18n';
 import { useResponsiveLayout } from '@/lib/responsive';
 import { colors, radii, shadows } from '@/lib/theme';
 import { AppText } from './app-text';
@@ -13,6 +14,7 @@ type LogoMarkProps = {
 
 export function LogoMark({ label, size, style }: LogoMarkProps) {
   const layout = useResponsiveLayout();
+  const { t } = useI18n();
   const markSize = size ?? layout.iconSize;
   const sparkOffset = Math.max(5, markSize * 0.13);
 
@@ -43,7 +45,7 @@ export function LogoMark({ label, size, style }: LogoMarkProps) {
             {label}
           </AppText>
           <AppText variant="caption" color="textMuted" numberOfLines={1}>
-            AI workout companion
+            {t('common.aiWorkoutCompanion')}
           </AppText>
         </View>
       ) : null}

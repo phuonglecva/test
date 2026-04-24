@@ -3,12 +3,14 @@ import { ArrowLeft, CheckCircle2, ChevronLeft, ChevronRight, PauseCircle } from 
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { AppText, GlassCard, NeonButton, ResponsiveScreen } from '@/components/ui';
+import { useI18n } from '@/lib/i18n';
 import { useResponsiveLayout } from '@/lib/responsive';
 import { colors, radii } from '@/lib/theme';
 import { useAppStore } from '@/store/useAppStore';
 
 export default function WorkoutProcessScreen() {
   const layout = useResponsiveLayout();
+  const { t } = useI18n();
   const patchStats = useAppStore((state) => state.patchStats);
   const currentWorkoutPlan = useAppStore((state) => state.currentWorkoutPlan);
   const currentWorkoutSession = useAppStore((state) => state.currentWorkoutSession);
@@ -43,11 +45,11 @@ export default function WorkoutProcessScreen() {
         <BackButton />
         <GlassCard style={{ marginTop: layout.sectionGap }}>
           <View style={{ padding: layout.cardPadding, gap: layout.compactGutter }}>
-            <AppText variant="title">No active workout</AppText>
+            <AppText variant="title">{t('process.noActiveTitle')}</AppText>
             <AppText variant="body" color="textMuted">
-              Generate a workout from the Train tab to enter focused process mode.
+              {t('process.noActiveSubtitle')}
             </AppText>
-            <NeonButton label="Back to train" onPress={() => router.replace('/train')} />
+            <NeonButton label={t('process.backToTrain')} onPress={() => router.replace('/train')} />
           </View>
         </GlassCard>
       </ResponsiveScreen>
@@ -107,7 +109,7 @@ export default function WorkoutProcessScreen() {
       <View style={{ marginTop: layout.sectionGap, gap: layout.gutter }}>
         <View style={{ alignItems: 'center' }}>
           <AppText variant="eyebrow" style={{ color: colors.textMuted }}>
-            Focus mode
+            {t('process.focusMode')}
           </AppText>
           <AppText
             variant="headline"
@@ -120,7 +122,10 @@ export default function WorkoutProcessScreen() {
             {formatElapsedTime(elapsedSeconds)}
           </AppText>
           <AppText variant="caption" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }}>
-            Exercise {workoutSession.currentExerciseIndex + 1} of {workoutPlan.exercises.length}
+            {t('process.exerciseOf', {
+              current: workoutSession.currentExerciseIndex + 1,
+              total: workoutPlan.exercises.length
+            })}
           </AppText>
         </View>
 
@@ -152,7 +157,7 @@ export default function WorkoutProcessScreen() {
           }}
         >
           <AppText variant="eyebrow" style={{ color: colors.orange }}>
-            Current exercise
+            {t('process.currentExercise')}
           </AppText>
           <AppText variant="headline" style={{ marginTop: layout.compactGutter }}>
             {exercise.name}
@@ -169,24 +174,24 @@ export default function WorkoutProcessScreen() {
         </View>
 
         <View style={{ flexDirection: 'row', gap: layout.compactGutter }}>
-          <MinimalStat label="Done" value={`${completedCount}/${workoutPlan.exercises.length}`} />
-          <MinimalStat label="Rest" value={exercise.rest} />
-          <MinimalStat label="Ready" value={`${Math.round(processProgress * 100)}%`} />
+          <MinimalStat label={t('process.done')} value={`${completedCount}/${workoutPlan.exercises.length}`} />
+          <MinimalStat label={t('common.rest')} value={exercise.rest} />
+          <MinimalStat label={t('process.ready')} value={`${Math.round(processProgress * 100)}%`} />
         </View>
 
         <View style={{ marginTop: layout.compactGutter, gap: layout.compactGutter }}>
           <View style={{ flexDirection: layout.isCompact ? 'column' : 'row', gap: layout.compactGutter }}>
-            <SecondaryAction label="Previous" icon={<ChevronLeft color={colors.text} size={16} />} onPress={goToPreviousExercise} />
-            <SecondaryAction label="Next" icon={<ChevronRight color={colors.text} size={16} />} onPress={goToNextExercise} />
+            <SecondaryAction label={t('process.previous')} icon={<ChevronLeft color={colors.text} size={16} />} onPress={goToPreviousExercise} />
+            <SecondaryAction label={t('process.next')} icon={<ChevronRight color={colors.text} size={16} />} onPress={goToNextExercise} />
           </View>
 
           <NeonButton
-            label="Complete exercise"
+            label={t('process.complete')}
             icon={<CheckCircle2 color={colors.background} fill={colors.background} size={16} />}
             onPress={completeCurrentExercise}
           />
 
-          <SecondaryAction label="Finish workout" icon={<PauseCircle color={colors.orange} size={16} />} onPress={finishWorkout} accent="orange" />
+          <SecondaryAction label={t('process.finish')} icon={<PauseCircle color={colors.orange} size={16} />} onPress={finishWorkout} accent="orange" />
         </View>
       </View>
     </ResponsiveScreen>

@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { storage } from '@/lib/storage';
 import type { AppStats } from '@/types/app';
 import type { WorkoutPlan } from '@/features/ai-chat';
+import type { AppLanguage } from '@/lib/i18n';
 
 type ActiveWorkoutSession = {
   currentExerciseIndex: number;
@@ -14,12 +15,14 @@ type AppState = {
   hasSeenOnboarding: boolean;
   activeTab: 'home' | 'library' | 'train' | 'progress' | 'profile';
   profileName: string;
+  language: AppLanguage;
   stats: AppStats;
   currentWorkoutPlan: WorkoutPlan | null;
   currentWorkoutSession: ActiveWorkoutSession | null;
   setHasSeenOnboarding: (value: boolean) => void;
   setActiveTab: (tab: AppState['activeTab']) => void;
   setProfileName: (name: string) => void;
+  setLanguage: (language: AppLanguage) => void;
   patchStats: (stats: Partial<AppStats>) => void;
   setCurrentWorkout: (plan: WorkoutPlan, session: ActiveWorkoutSession) => void;
   patchCurrentWorkoutSession: (session: Partial<ActiveWorkoutSession>) => void;
@@ -32,6 +35,7 @@ export const useAppStore = create<AppState>()(
       hasSeenOnboarding: false,
       activeTab: 'home',
       profileName: 'Shado',
+      language: 'vi',
       stats: {
         dailyVolume: 8420,
         calories: 642,
@@ -42,6 +46,7 @@ export const useAppStore = create<AppState>()(
       setHasSeenOnboarding: (value) => set({ hasSeenOnboarding: value }),
       setActiveTab: (tab) => set({ activeTab: tab }),
       setProfileName: (name) => set({ profileName: name }),
+      setLanguage: (language) => set({ language }),
       patchStats: (stats) =>
         set((state) => ({
           stats: {

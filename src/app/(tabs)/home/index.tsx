@@ -4,7 +4,7 @@ import { Bell, Bot, MessageCircle, Play, Sparkles, Zap } from 'lucide-react-nati
 import { Pressable, ScrollView, View } from 'react-native';
 import { WorkoutCard } from '@/components/home';
 import { AppText, GlassCard, LogoMark, NeonButton, ProgressRing, ResponsiveScreen, SectionHeader } from '@/components/ui';
-import { APP_GREETING } from '@/lib/constants';
+import { useI18n } from '@/lib/i18n';
 import { minTouchTarget, useResponsiveLayout } from '@/lib/responsive';
 import { colors, gradients, radii, shadows } from '@/lib/theme';
 import { formatDateLabel, getGreetingLabel } from '@/lib/utils';
@@ -13,6 +13,7 @@ import { useAppStore } from '@/store/useAppStore';
 
 export default function HomeScreen() {
   const layout = useResponsiveLayout();
+  const { language, t } = useI18n();
   const profileName = useAppStore((state) => state.profileName) || mockUser.name;
   const heroDirection = layout.isCompact || (layout.isLandscape && !layout.isTablet) ? 'column' : 'row';
   const workoutCardWidth = layout.isTablet
@@ -77,10 +78,10 @@ export default function HomeScreen() {
 
       <View style={{ marginTop: layout.gutter }}>
         <AppText variant="caption" color="textMuted">
-          {formatDateLabel(new Date())} • {getGreetingLabel(new Date().getHours())}, {profileName}
+          {formatDateLabel(new Date(), language)} • {getGreetingLabel(new Date().getHours(), language)}, {profileName}
         </AppText>
         <AppText variant="headline" style={{ marginTop: layout.compactGutter / 2 }} numberOfLines={3}>
-          {APP_GREETING}
+          {t('home.greetingQuestion')}
         </AppText>
       </View>
 
@@ -89,20 +90,20 @@ export default function HomeScreen() {
           <View style={{ flexDirection: heroDirection, gap: layout.gutter, alignItems: 'center' }}>
             <View style={{ flex: 1, minWidth: 0, width: heroDirection === 'column' ? '100%' : undefined }}>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: layout.compactGutter }}>
-                <Pill label="LIVE" color={colors.neon} />
-                <Pill label="Mock connections" color={colors.orange} />
+                <Pill label={t('home.hero.live')} color={colors.neon} />
+                <Pill label={t('home.hero.mockConnections')} color={colors.orange} />
               </View>
 
               <AppText variant="title" style={{ marginTop: layout.compactGutter }}>
-                Start Workout
+                {t('home.hero.title')}
               </AppText>
               <AppText variant="body" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }}>
-                Kế hoạch hôm nay đã được dựng bằng mock data để app luôn có nội dung khi backend chưa sẵn sàng.
+                {t('home.hero.body')}
               </AppText>
 
               <View style={{ marginTop: layout.gutter, alignSelf: layout.isCompact ? 'stretch' : 'flex-start' }}>
                 <NeonButton
-                  label="Bắt đầu buổi tập"
+                  label={t('home.hero.button')}
                   icon={<Play color={colors.background} fill={colors.background} size={16} />}
                   onPress={() => router.push('/train')}
                 />
@@ -113,7 +114,7 @@ export default function HomeScreen() {
               size={layout.isCompact ? 92 : layout.isTablet ? 122 : 106}
               strokeWidth={10}
               progress={mockUser.readiness / 100}
-              label="Readiness"
+              label={t('home.readiness')}
               value={`${mockUser.readiness}%`}
               accent={colors.neon}
             />
@@ -128,9 +129,9 @@ export default function HomeScreen() {
       </View>
 
       <SectionHeader
-        title="Recommended Workouts"
-        subtitle="Cá nhân hóa từ mock plan cho đến khi AI/backend được nối."
-        actionLabel="See all"
+        title={t('home.recommended')}
+        subtitle={t('home.recommendedSubtitle')}
+        actionLabel={t('common.seeAll')}
         onActionPress={() => router.push('/library')}
         style={{ marginTop: layout.sectionGap }}
       />
@@ -162,13 +163,13 @@ export default function HomeScreen() {
         <GlassCard style={{ flex: 1 }}>
           <View style={{ padding: layout.cardPadding }}>
             <AppText variant="caption" color="textMuted">
-              Daily Focus
+              {t('home.dailyFocus')}
             </AppText>
             <AppText variant="title" style={{ marginTop: layout.compactGutter / 2 }}>
-              Chest + Triceps
+              {t('home.dailyFocusTitle')}
             </AppText>
             <AppText variant="body" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }}>
-              18 sets • 7 exercises • 91% adherence
+              {t('home.dailyFocusMeta')}
             </AppText>
           </View>
         </GlassCard>
@@ -189,15 +190,15 @@ export default function HomeScreen() {
               92
             </AppText>
             <AppText variant="caption" color="textMuted">
-              Energy
+              {t('home.energy')}
             </AppText>
           </View>
         </GlassCard>
       </View>
 
       <SectionHeader
-        title="AI đang gợi ý"
-        subtitle="Mock insight để màn không trống khi chưa nối provider."
+        title={t('home.aiSuggestions')}
+        subtitle={t('home.aiSuggestionsSubtitle')}
         style={{ marginTop: layout.sectionGap }}
       />
 
@@ -207,7 +208,11 @@ export default function HomeScreen() {
         ))}
       </View>
 
-      <SectionHeader title="Plan hôm nay" subtitle="Các bài sẵn sàng trong logger." style={{ marginTop: layout.sectionGap }} />
+      <SectionHeader
+        title={t('home.todayPlan')}
+        subtitle={t('home.todayPlanSubtitle')}
+        style={{ marginTop: layout.sectionGap }}
+      />
       <GlassCard>
         <View style={{ padding: layout.cardPadding, gap: layout.compactGutter }}>
           {mockTodayPlan.map((item) => (
@@ -299,6 +304,7 @@ function SuggestionCard({ suggestion }: { suggestion: (typeof mockAiSuggestions)
 
 function PlanRow({ item }: { item: (typeof mockTodayPlan)[number] }) {
   const layout = useResponsiveLayout();
+  const { t } = useI18n();
 
   return (
     <View
@@ -317,7 +323,7 @@ function PlanRow({ item }: { item: (typeof mockTodayPlan)[number] }) {
           {item.name}
         </AppText>
         <AppText variant="caption" color="textMuted" style={{ marginTop: layout.compactGutter / 3 }} numberOfLines={1}>
-          {item.sets} • {item.load} • rest {item.rest}
+          {item.sets} • {item.load} • {t('common.rest')} {item.rest}
         </AppText>
       </View>
       <AppText variant="caption" style={{ color: item.status === 'AI added' ? colors.orange : colors.neon }} numberOfLines={1}>

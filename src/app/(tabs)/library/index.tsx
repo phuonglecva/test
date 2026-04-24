@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, TextInput, View } from 'react-native';
 import { AppText, GlassCard, LogoMark, ResponsiveScreen, SectionHeader } from '@/components/ui';
 import { exercises, searchExercises } from '@/data/exercises';
+import { useI18n } from '@/lib/i18n';
 import { scaleFontSize, useResponsiveLayout } from '@/lib/responsive';
 import { colors, radii } from '@/lib/theme';
 import { getExerciseImageSource } from '@/lib/exercise-media';
@@ -14,6 +15,7 @@ const DEFAULT_LIMIT = 18;
 
 export default function LibraryScreen() {
   const layout = useResponsiveLayout();
+  const { t } = useI18n();
   const [query, setQuery] = useState('');
   const [selectedBodyPart, setSelectedBodyPart] = useState('all');
 
@@ -34,12 +36,12 @@ export default function LibraryScreen() {
 
   return (
     <ResponsiveScreen keyboardAware>
-      <LogoMark label="Exercise Library" />
+      <LogoMark label={t('common.library')} />
 
       <View style={{ marginTop: layout.gutter }}>
-        <AppText variant="headline">Kho bài tập</AppText>
+        <AppText variant="headline">{t('library.title')}</AppText>
         <AppText variant="body" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }}>
-          Dữ liệu local từ dataset, luôn có ảnh fallback để không bị thiếu logo hoặc card trống.
+          {t('library.subtitle')}
         </AppText>
       </View>
 
@@ -56,7 +58,7 @@ export default function LibraryScreen() {
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder="Tìm bài tập, nhóm cơ, dụng cụ..."
+            placeholder={t('library.searchPlaceholder')}
             placeholderTextColor={colors.textSubtle}
             autoCapitalize="none"
             returnKeyType="search"
@@ -113,8 +115,8 @@ export default function LibraryScreen() {
       </ScrollView>
 
       <SectionHeader
-        title="Kết quả đề xuất"
-        subtitle={`${filteredExercises.length} bài đầu tiên từ mock/local data`}
+        title={t('library.results')}
+        subtitle={t('library.resultsSubtitle', { count: filteredExercises.length })}
         style={{ marginTop: layout.sectionGap }}
       />
 

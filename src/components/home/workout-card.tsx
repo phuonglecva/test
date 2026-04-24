@@ -5,6 +5,7 @@ import { ArrowRight, Clock3, Flame, ListChecks } from 'lucide-react-native';
 import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
 import { GlassCard } from '@/components/ui/glass-card';
 import { AppText } from '@/components/ui/app-text';
+import { useI18n } from '@/lib/i18n';
 import { colors } from '@/lib/theme';
 import { getExerciseImageSource } from '@/lib/exercise-media';
 import { useResponsiveLayout } from '@/lib/responsive';
@@ -33,6 +34,7 @@ export function WorkoutCard({
   style
 }: WorkoutCardProps) {
   const layout = useResponsiveLayout();
+  const { t } = useI18n();
   const accentColor = accent === 'neon' ? colors.neon : colors.orange;
   const accentColors =
     accent === 'neon'
@@ -80,7 +82,7 @@ export function WorkoutCard({
                 >
                   <Clock3 color={accentColor} size={13} />
                   <AppText variant="caption" style={{ color: colors.text }}>
-                    {minutes} min
+                    {minutes} {t('common.minutes')}
                   </AppText>
                 </View>
                 {exercises ? (
@@ -97,7 +99,7 @@ export function WorkoutCard({
                   >
                     <ListChecks color={colors.textMuted} size={13} />
                     <AppText variant="caption" color="textMuted">
-                      {exercises} bài
+                      {exercises} {t('common.exercises')}
                     </AppText>
                   </View>
                 ) : null}
@@ -124,15 +126,15 @@ export function WorkoutCard({
           >
             <View>
               <AppText variant="caption" color="textMuted">
-                Burn estimate
+                {t('workoutCard.burnEstimate')}
               </AppText>
               <AppText variant="bodyStrong" style={{ color: accentColor, marginTop: layout.compactGutter / 4 }}>
-                {calories ? `${calories} kcal` : 'Mock plan'}
+                {calories ? `${calories} kcal` : t('workoutCard.mockPlan')}
               </AppText>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <AppText variant="bodyStrong" style={{ color: accentColor }}>
-                Start
+                {t('common.start')}
               </AppText>
               <ArrowRight color={accentColor} size={15} />
             </View>

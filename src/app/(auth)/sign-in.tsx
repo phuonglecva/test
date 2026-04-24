@@ -2,11 +2,13 @@ import { router } from 'expo-router';
 import { ArrowRight, Mail } from 'lucide-react-native';
 import { View } from 'react-native';
 import { AppText, GlassCard, LogoMark, NeonButton, ResponsiveScreen } from '@/components/ui';
+import { useI18n } from '@/lib/i18n';
 import { useResponsiveLayout } from '@/lib/responsive';
 import { colors } from '@/lib/theme';
 
 export default function SignInScreen() {
   const layout = useResponsiveLayout();
+  const { t } = useI18n();
 
   return (
     <ResponsiveScreen bottomInset="none" keyboardAware contentContainerStyle={{ justifyContent: layout.isLandscape ? 'flex-start' : 'center', flexGrow: 1 }}>
@@ -18,15 +20,15 @@ export default function SignInScreen() {
             <Mail color={colors.neon} size={20} />
           </View>
           <AppText variant="headline" style={{ marginTop: layout.gutter }}>
-            Sign in
+            {t('auth.signIn')}
           </AppText>
           <AppText variant="body" color="textMuted" style={{ marginTop: layout.compactGutter }}>
-            Auth thật chưa được nối, nên màn này dùng mock entry để vào app và kiểm thử giao diện.
+            {t('auth.signInSubtitle')}
           </AppText>
           <View style={{ marginTop: layout.sectionGap }}>
             <NeonButton
               size="lg"
-              label="Vào app bằng mock profile"
+              label={t('auth.enterMock')}
               icon={<ArrowRight color={colors.background} size={18} />}
               onPress={() => router.replace('/home')}
             />

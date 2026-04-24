@@ -5,6 +5,7 @@ import { useState, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, TextInput, View } from 'react-native';
 import { AppText, GlassCard, LogoMark, NeonButton, ResponsiveScreen, SectionHeader } from '@/components/ui';
 import { generateWorkoutPlan, hasOpenRouterConfig, type WorkoutPlan, type WorkoutTip } from '@/features/ai-chat';
+import { useI18n } from '@/lib/i18n';
 import { useResponsiveLayout } from '@/lib/responsive';
 import { colors, gradients, radii } from '@/lib/theme';
 import { useAppStore } from '@/store/useAppStore';
@@ -15,6 +16,7 @@ const DEFAULT_GOAL = 'Build a 50 minute upper body workout for muscle gain with 
 
 export default function TrainScreen() {
   const layout = useResponsiveLayout();
+  const { t } = useI18n();
   const setCurrentWorkout = useAppStore((state) => state.setCurrentWorkout);
   const currentWorkoutPlan = useAppStore((state) => state.currentWorkoutPlan);
   const currentWorkoutSession = useAppStore((state) => state.currentWorkoutSession);
@@ -57,13 +59,13 @@ export default function TrainScreen() {
       <GlassCard style={{ marginTop: layout.sectionGap }}>
         <LinearGradient colors={gradients.panel as unknown as [string, string, string]} style={{ padding: layout.cardPadding }}>
           <AppText variant="eyebrow" style={{ color: colors.neon }}>
-            {lastSource === 'openrouter' ? 'OpenRouter coach enabled' : 'Fallback coach ready'}
+            {lastSource === 'openrouter' ? t('train.openrouterEnabled') : t('train.fallbackReady')}
           </AppText>
           <AppText variant="headline" style={{ marginTop: layout.compactGutter }}>
-            Generate a workout plan
+            {t('train.title')}
           </AppText>
           <AppText variant="body" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }}>
-            Build the workout here. Once it is ready, the app opens a separate full-screen process mode for training.
+            {t('train.subtitle')}
           </AppText>
 
           <View style={{ marginTop: layout.gutter, gap: layout.compactGutter }}>
@@ -71,7 +73,7 @@ export default function TrainScreen() {
 
             <NeonButton
               size="lg"
-              label={isLoading ? 'Generating workout...' : 'Generate workout and start'}
+              label={isLoading ? t('train.generating') : t('train.generate')}
               icon={
                 isLoading ? (
                   <ActivityIndicator color={colors.background} />
@@ -86,7 +88,7 @@ export default function TrainScreen() {
 
             {currentWorkoutPlan && currentWorkoutSession ? (
               <SecondaryAction
-                label="Resume workout process"
+                label={t('train.resume')}
                 icon={<Activity color={colors.neon} size={16} />}
                 onPress={handleResumeProcess}
               />
@@ -96,20 +98,20 @@ export default function TrainScreen() {
       </GlassCard>
 
       <SectionHeader
-        title="Plan view"
-        subtitle={plan ? `${plan.focus} • ${plan.durationMinutes} min • ${plan.difficulty}` : 'Generate a plan to review the workout and then enter process mode.'}
+        title={t('train.planView')}
+        subtitle={plan ? `${plan.focus} • ${plan.durationMinutes} ${t('common.minutes')} • ${plan.difficulty}` : t('train.planViewSubtitle')}
         style={{ marginTop: layout.sectionGap }}
       />
 
       <View style={{ flexDirection: tabDirection, gap: layout.compactGutter }}>
         <TrainTabButton
-          label="Plan"
+          label={t('train.plan')}
           active={activeTab === 'plan'}
           icon={<Dumbbell color={activeTab === 'plan' ? colors.background : colors.neon} size={16} />}
           onPress={() => setActiveTab('plan')}
         />
         <TrainTabButton
-          label="Tips"
+          label={t('train.tips')}
           active={activeTab === 'tips'}
           icon={<Lightbulb color={activeTab === 'tips' ? colors.background : colors.orange} size={16} />}
           onPress={() => setActiveTab('tips')}
@@ -130,6 +132,7 @@ function GoalInput({
   onChangeText: (text: string) => void;
 }) {
   const layout = useResponsiveLayout();
+  const { t } = useI18n();
 
   return (
     <View
@@ -143,12 +146,12 @@ function GoalInput({
       }}
     >
       <AppText variant="eyebrow" style={{ color: colors.orange }}>
-        Training goal
+        {t('train.goal')}
       </AppText>
       <TextInput
         value={value}
         onChangeText={onChangeText}
-        placeholder="Example: Build a 45 minute push workout for a beginner."
+        placeholder={t('train.goalPlaceholder')}
         placeholderTextColor={colors.textSubtle}
         multiline
         style={{
@@ -206,21 +209,22 @@ function TrainTabButton({
 
 function PlanTab({ plan }: { plan: WorkoutPlan }) {
   const layout = useResponsiveLayout();
+  const { t } = useI18n();
 
   return (
     <View style={{ marginTop: layout.gutter, gap: layout.gutter }}>
       <GlassCard>
         <View style={{ padding: layout.cardPadding, gap: layout.compactGutter }}>
           <AppText variant="eyebrow" style={{ color: colors.neon }}>
-            Session brief
+            {t('train.sessionBrief')}
           </AppText>
           <AppText variant="title">{plan.title}</AppText>
           <AppText variant="body" color="textMuted">
             {plan.summary}
           </AppText>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: layout.compactGutter }}>
-            <InfoPill icon={<Timer color={colors.neon} size={14} />} label={`${plan.durationMinutes} min`} />
-            <InfoPill icon={<Dumbbell color={colors.orange} size={14} />} label={`${plan.exercises.length} exercises`} />
+            <InfoPill icon={<Timer color={colors.neon} size={14} />} label={`${plan.durationMinutes} ${t('common.minutes')}`} />
+            <InfoPill icon={<Dumbbell color={colors.orange} size={14} />} label={`${plan.exercises.length} ${t('common.exercises')}`} />
             <InfoPill icon={<ShieldCheck color={colors.neon} size={14} />} label={plan.difficulty} />
           </View>
           {plan.note ? (
@@ -231,14 +235,14 @@ function PlanTab({ plan }: { plan: WorkoutPlan }) {
         </View>
       </GlassCard>
 
-      <SectionHeader title="Warm-up" subtitle="Use this to prepare before the working sets." />
+      <SectionHeader title={t('train.warmup')} subtitle={t('train.warmupSubtitle')} />
       <View style={{ gap: layout.compactGutter }}>
         {plan.warmup.map((item) => (
           <SimpleLineCard key={item} text={item} accent="neon" />
         ))}
       </View>
 
-      <SectionHeader title="Exercises" subtitle="Built from the generated workout plan." style={{ marginTop: layout.compactGutter }} />
+      <SectionHeader title={t('train.exercisesTitle')} subtitle={t('train.exercisesSubtitle')} style={{ marginTop: layout.compactGutter }} />
       <View style={{ gap: layout.gutter }}>
         {plan.exercises.map((exercise, index) => (
           <ExerciseCard key={`${exercise.name}-${index}`} exercise={exercise} index={index + 1} />
@@ -250,17 +254,18 @@ function PlanTab({ plan }: { plan: WorkoutPlan }) {
 
 function TipsTab({ plan }: { plan: WorkoutPlan }) {
   const layout = useResponsiveLayout();
+  const { t } = useI18n();
 
   return (
     <View style={{ marginTop: layout.gutter, gap: layout.gutter }}>
-      <SectionHeader title="Training information" subtitle="Tips and tricks to work effectively during this session." />
+      <SectionHeader title={t('train.tipsTitle')} subtitle={t('train.tipsSubtitle')} />
       <View style={{ gap: layout.compactGutter }}>
         {plan.tips.map((tip, index) => (
           <TipCard key={`${tip.title}-${index}`} tip={tip} />
         ))}
       </View>
 
-      <SectionHeader title="Recovery reminders" subtitle="Small habits that help the work stick." style={{ marginTop: layout.compactGutter }} />
+      <SectionHeader title={t('train.recoveryTitle')} subtitle={t('train.recoverySubtitle')} style={{ marginTop: layout.compactGutter }} />
       <View style={{ gap: layout.compactGutter }}>
         {plan.recovery.map((item) => (
           <SimpleLineCard key={item} text={item} accent="orange" />
@@ -278,6 +283,7 @@ function ExerciseCard({
   index: number;
 }) {
   const layout = useResponsiveLayout();
+  const { t } = useI18n();
 
   return (
     <GlassCard>
@@ -300,7 +306,7 @@ function ExerciseCard({
           <View style={{ flex: 1, minWidth: 0 }}>
             <AppText variant="bodyStrong">{exercise.name}</AppText>
             <AppText variant="caption" color="textMuted" style={{ marginTop: 4 }}>
-              {exercise.sets} sets • {exercise.reps} reps • rest {exercise.rest}
+              {exercise.sets} sets • {exercise.reps} reps • {t('common.rest')} {exercise.rest}
             </AppText>
           </View>
         </View>
@@ -314,9 +320,10 @@ function ExerciseCard({
 
 function TipCard({ tip }: { tip: WorkoutTip }) {
   const layout = useResponsiveLayout();
+  const { t } = useI18n();
   const accentColor = tip.category === 'recovery' ? colors.orange : colors.neon;
   const chipLabel =
-    tip.category === 'execution' ? 'Execution tip' : tip.category === 'recovery' ? 'Recovery tip' : 'Training tip';
+    tip.category === 'execution' ? t('train.executionTip') : tip.category === 'recovery' ? t('train.recoveryTip') : t('train.trainingTip');
 
   return (
     <GlassCard>
@@ -424,15 +431,14 @@ function InfoPill({
 
 function EmptyState({ isConfigured }: { isConfigured: boolean }) {
   const layout = useResponsiveLayout();
+  const { t } = useI18n();
 
   return (
     <GlassCard style={{ marginTop: layout.gutter }}>
       <View style={{ padding: layout.cardPadding, gap: layout.compactGutter }}>
-        <AppText variant="title">No generated plan yet</AppText>
+        <AppText variant="title">{t('train.noPlan')}</AppText>
         <AppText variant="body" color="textMuted">
-          {isConfigured
-            ? 'Your OpenRouter key is available. Generate a workout to open the dedicated process screen.'
-            : 'OpenRouter is not available at runtime, so the screen will fall back to a local workout template when you generate.'}
+          {isConfigured ? t('train.noPlanSubtitle') : t('train.noPlanFallback')}
         </AppText>
       </View>
     </GlassCard>

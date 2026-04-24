@@ -3,39 +3,41 @@ import { Activity, Award, Flame, TrendingUp } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
 import { AppText, GlassCard, LogoMark, ProgressRing, ResponsiveScreen, SectionHeader } from '@/components/ui';
+import { useI18n } from '@/lib/i18n';
 import { mockMetrics, mockPersonalRecords, mockProgressWeeks, mockUser } from '@/data/mock-app';
 import { useResponsiveLayout } from '@/lib/responsive';
 import { colors, gradients, radii } from '@/lib/theme';
 
 export default function ProgressScreen() {
   const layout = useResponsiveLayout();
+  const { t } = useI18n();
   const maxVolume = Math.max(...mockProgressWeeks.map((week) => week.volume));
   const heroDirection = layout.isCompact || (layout.isLandscape && !layout.isTablet) ? 'column' : 'row';
   const chartHeight = Math.min(layout.height * 0.28, layout.isTablet ? 240 : 180);
 
   return (
     <ResponsiveScreen>
-      <LogoMark label="Progress" />
+      <LogoMark label={t('common.progress')} />
 
       <GlassCard style={{ marginTop: layout.sectionGap }}>
         <LinearGradient colors={gradients.panel as unknown as [string, string, string]} style={{ padding: layout.cardPadding }}>
           <View style={{ flexDirection: heroDirection, alignItems: 'center', gap: layout.gutter }}>
             <View style={{ flex: 1, minWidth: 0, width: heroDirection === 'column' ? '100%' : undefined }}>
               <AppText variant="eyebrow" style={{ color: colors.neon }}>
-                Weekly overview
+                {t('progress.weeklyOverview')}
               </AppText>
               <AppText variant="headline" style={{ marginTop: layout.compactGutter }}>
-                {mockUser.weeklyDone}/{mockUser.weeklyGoal} buổi hoàn thành
+                {t('progress.weeklyDone', { done: mockUser.weeklyDone, goal: mockUser.weeklyGoal })}
               </AppText>
               <AppText variant="body" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }}>
-                Dashboard đang chạy mock data cho đến khi backend tracking được nối.
+                {t('progress.weeklySubtitle')}
               </AppText>
             </View>
             <ProgressRing
               size={layout.isTablet ? 116 : 98}
               strokeWidth={10}
               progress={mockUser.weeklyDone / mockUser.weeklyGoal}
-              label="Goal"
+              label={t('common.goal')}
               value={`${Math.round((mockUser.weeklyDone / mockUser.weeklyGoal) * 100)}%`}
               accent={colors.neon}
             />
@@ -49,7 +51,7 @@ export default function ProgressScreen() {
         ))}
       </View>
 
-      <SectionHeader title="Volume tuần này" subtitle="Mock chart local, không cần API." style={{ marginTop: layout.sectionGap }} />
+      <SectionHeader title={t('progress.volumeThisWeek')} subtitle={t('progress.volumeSubtitle')} style={{ marginTop: layout.sectionGap }} />
       <GlassCard>
         <View style={{ padding: layout.cardPadding }}>
           <View style={{ minHeight: chartHeight, flexDirection: 'row', alignItems: 'flex-end', gap: layout.compactGutter }}>
@@ -78,7 +80,7 @@ export default function ProgressScreen() {
         </View>
       </GlassCard>
 
-      <SectionHeader title="Personal Records" subtitle="PR mẫu để test flow thành tích." style={{ marginTop: layout.sectionGap }} />
+      <SectionHeader title={t('progress.personalRecords')} subtitle={t('progress.personalRecordsSubtitle')} style={{ marginTop: layout.sectionGap }} />
       <View style={{ gap: layout.gutter }}>
         {mockPersonalRecords.map((record) => (
           <GlassCard key={record.id}>
@@ -116,7 +118,7 @@ export default function ProgressScreen() {
         ))}
       </View>
 
-      <SectionHeader title="Signals" subtitle="Trạng thái giả lập cho kết nối wearable." style={{ marginTop: layout.sectionGap }} />
+      <SectionHeader title={t('progress.signals')} subtitle={t('progress.signalsSubtitle')} style={{ marginTop: layout.sectionGap }} />
       <View style={{ flexDirection: layout.isCompact ? 'column' : 'row', gap: layout.gutter }}>
         <SignalCard icon={<Activity color={colors.neon} size={18} />} label="HRV" value="68 ms" />
         <SignalCard icon={<Flame color={colors.orange} size={18} />} label="Load" value="High" />

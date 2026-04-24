@@ -1,17 +1,47 @@
 import { router } from 'expo-router';
 import { ArrowRight, Dumbbell, Sparkles, TrendingUp, Users } from 'lucide-react-native';
 import type { ReactNode } from 'react';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { FlatList, View } from 'react-native';
 import { AppText, LogoMark, NeonButton, ResponsiveScreen } from '@/components/ui';
-import { ONBOARDING_SLIDES } from '@/lib/constants';
+import { useI18n } from '@/lib/i18n';
 import { clamp, useResponsiveLayout } from '@/lib/responsive';
 import { colors, radii, shadows } from '@/lib/theme';
 import { useAppStore } from '@/store/useAppStore';
 
 export default function OnboardingScreen() {
   const layout = useResponsiveLayout();
-  const listRef = useRef<FlatList<(typeof ONBOARDING_SLIDES)[number]>>(null);
+  const { t } = useI18n();
+  const slides = useMemo(
+    () => [
+      {
+        id: 'hero',
+        title: t('onboarding.heroTitle'),
+        subtitle: t('onboarding.heroSubtitle'),
+        accent: t('onboarding.heroAccent')
+      },
+      {
+        id: 'coach',
+        title: t('onboarding.coachTitle'),
+        subtitle: t('onboarding.coachSubtitle'),
+        accent: t('onboarding.coachAccent')
+      },
+      {
+        id: 'progress',
+        title: t('onboarding.progressTitle'),
+        subtitle: t('onboarding.progressSubtitle'),
+        accent: t('onboarding.progressAccent')
+      },
+      {
+        id: 'buddy',
+        title: t('onboarding.buddyTitle'),
+        subtitle: t('onboarding.buddySubtitle'),
+        accent: t('onboarding.buddyAccent')
+      }
+    ],
+    [t]
+  );
+  const listRef = useRef<FlatList<(typeof slides)[number]>>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const setHasSeenOnboarding = useAppStore((state) => state.setHasSeenOnboarding);
   const slideGap = layout.gutter;
@@ -52,14 +82,14 @@ export default function OnboardingScreen() {
             }}
           >
             <AppText variant="caption" style={{ color: colors.neon, fontFamily: 'Inter_600SemiBold' }} numberOfLines={1}>
-              AI Companion
+              {t('auth.aiCompanion')}
             </AppText>
           </View>
         </View>
 
         <FlatList
           ref={listRef}
-          data={ONBOARDING_SLIDES}
+          data={slides}
           keyExtractor={(item) => item.id}
           horizontal
           pagingEnabled
@@ -122,9 +152,9 @@ export default function OnboardingScreen() {
                     </AppText>
 
                     <View style={{ marginTop: layout.gutter, flexDirection: 'row', flexWrap: 'wrap', gap: layout.compactGutter }}>
-                      <FeatureChip icon={<Dumbbell color={colors.neon} size={14} />} label="Workout AI" />
-                      <FeatureChip icon={<TrendingUp color={colors.orange} size={14} />} label="Progress" />
-                      <FeatureChip icon={<Users color={colors.neon} size={14} />} label="Find Buddy" />
+                      <FeatureChip icon={<Dumbbell color={colors.neon} size={14} />} label={t('onboarding.workoutAi')} />
+                      <FeatureChip icon={<TrendingUp color={colors.orange} size={14} />} label={t('onboarding.progressChip')} />
+                      <FeatureChip icon={<Users color={colors.neon} size={14} />} label={t('onboarding.findBuddy')} />
                     </View>
                   </View>
                 </View>
@@ -134,7 +164,7 @@ export default function OnboardingScreen() {
         />
 
         <View style={{ marginTop: layout.gutter, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: layout.compactGutter }}>
-          {ONBOARDING_SLIDES.map((slide, index) => (
+          {slides.map((slide, index) => (
             <View
               key={slide.id}
               style={{
@@ -150,7 +180,7 @@ export default function OnboardingScreen() {
         <View style={{ marginTop: layout.gutter }}>
           <NeonButton
             size="lg"
-            label="Bắt đầu miễn phí"
+            label={t('auth.startFree')}
             icon={<ArrowRight color={colors.background} size={18} />}
             onPress={() => {
               setHasSeenOnboarding(true);
