@@ -11,6 +11,8 @@ export default function ExerciseDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const layout = useResponsiveLayout();
   const exercise = getExerciseWithMedia(id);
+  const detailMediaSource = exercise?.media?.gif ?? exercise?.media?.image;
+  const detailMediaIsGif = Boolean(exercise?.media?.gif);
   const muscleGroups = getUniqueMuscleGroups([
     exercise?.target,
     exercise?.muscle_group,
@@ -33,8 +35,13 @@ export default function ExerciseDetailScreen() {
               backgroundColor: 'rgba(255,255,255,0.06)'
             }}
           >
-            {exercise?.media?.image ? (
-              <Image source={exercise.media.image} contentFit="cover" style={{ width: '100%', height: '100%' }} />
+            {detailMediaSource ? (
+              <Image
+                source={detailMediaSource}
+                contentFit="cover"
+                style={{ width: '100%', height: '100%' }}
+                autoplay={detailMediaIsGif}
+              />
             ) : (
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                 <Dumbbell color={colors.neon} size={42} />
@@ -56,6 +63,11 @@ export default function ExerciseDetailScreen() {
               ? `${exercise.equipment} • target ${exercise.target ?? exercise.category}`
               : 'Không tìm thấy bài trong dataset, đang hiển thị fallback.'}
           </AppText>
+          {exercise ? (
+            <AppText variant="caption" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }}>
+              {detailMediaIsGif ? 'Detail view is using dataset GIF.' : 'Detail view is using image fallback.'}
+            </AppText>
+          ) : null}
         </View>
       </GlassCard>
 

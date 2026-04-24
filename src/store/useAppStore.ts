@@ -2,16 +2,28 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { storage } from '@/lib/storage';
 import type { AppStats } from '@/types/app';
+import type { WorkoutPlan } from '@/features/ai-chat';
+
+type ActiveWorkoutSession = {
+  currentExerciseIndex: number;
+  completedExerciseIndexes: number[];
+  startedAt: number;
+};
 
 type AppState = {
   hasSeenOnboarding: boolean;
   activeTab: 'home' | 'library' | 'train' | 'progress' | 'profile';
   profileName: string;
   stats: AppStats;
+  currentWorkoutPlan: WorkoutPlan | null;
+  currentWorkoutSession: ActiveWorkoutSession | null;
   setHasSeenOnboarding: (value: boolean) => void;
   setActiveTab: (tab: AppState['activeTab']) => void;
   setProfileName: (name: string) => void;
   patchStats: (stats: Partial<AppStats>) => void;
+  setCurrentWorkout: (plan: WorkoutPlan, session: ActiveWorkoutSession) => void;
+  patchCurrentWorkoutSession: (session: Partial<ActiveWorkoutSession>) => void;
+  clearCurrentWorkout: () => void;
 };
 
 export const useAppStore = create<AppState>()(
@@ -25,6 +37,8 @@ export const useAppStore = create<AppState>()(
         calories: 642,
         streakDays: 18
       },
+      currentWorkoutPlan: null,
+      currentWorkoutSession: null,
       setHasSeenOnboarding: (value) => set({ hasSeenOnboarding: value }),
       setActiveTab: (tab) => set({ activeTab: tab }),
       setProfileName: (name) => set({ profileName: name }),
@@ -34,7 +48,26 @@ export const useAppStore = create<AppState>()(
             ...state.stats,
             ...stats
           }
-        }))
+        })),
+      setCurrentWorkout: (plan, session) =>
+        set({
+          currentWorkoutPlan: plan,
+          currentWorkoutSession: session
+        }),
+      patchCurrentWorkoutSession: (session) =>
+        set((state) => ({
+          currentWorkoutSession: state.currentWorkoutSession
+            ? {
+                ...state.currentWorkoutSession,
+                ...session
+              }
+            : state.currentWorkoutSession
+        })),
+      clearCurrentWorkout: () =>
+        set({
+          currentWorkoutPlan: null,
+          currentWorkoutSession: null
+        })
     }),
     {
       name: 'gym-buddy-app',

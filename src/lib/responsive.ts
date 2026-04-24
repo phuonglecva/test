@@ -44,7 +44,7 @@ export function createResponsiveLayout({
   const gutter = clamp(Math.round(width * 0.028), 10, 18);
   const compactGutter = clamp(Math.round(width * 0.02), 8, 12);
   const tabBarHeight = isLandscape && !isTablet ? 66 : clamp(Math.round(height * 0.092), 76, 92);
-  const tabBarBottom = Math.max(insets.bottom, 8) + 8;
+  const tabBarBottom = 0;
   const bottomTabInset = tabBarHeight + tabBarBottom + pagePadding;
   const contentMaxWidth = maxContentWidth ?? width;
   const contentWidth = Math.min(width - pagePadding * 2, contentMaxWidth);
