@@ -1,12 +1,13 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Bot, CheckCircle2, Cloud, Dumbbell, Globe2, Settings, Shield, Watch } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
-import { AppText, GlassCard, LogoMark, ProgressRing, ResponsiveScreen, SectionHeader } from '@/components/ui';
+import { AppText, EmptyState, GlassCard, LogoMark, ProgressRing, ResponsiveScreen, SectionHeader } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
-import { mockBadges, mockConnections, mockUser } from '@/data/mock-app';
 import { useResponsiveLayout } from '@/lib/responsive';
 import { colors, gradients, radii } from '@/lib/theme';
 import { useAppStore } from '@/store/useAppStore';
+import { useAppData } from '@/hooks/useApiData';
+import { router } from 'expo-router';
 
 const connectionIcons = {
   supabase: Cloud,
@@ -18,9 +19,15 @@ export default function ProfileScreen() {
   const layout = useResponsiveLayout();
   const { language, t } = useI18n();
   const setLanguage = useAppStore((state) => state.setLanguage);
+  const clearAuthSession = useAppStore((state) => state.clearAuthSession);
+  const { data } = useAppData();
+  const user = data?.user;
+  const badges = data?.badges ?? [];
+  const connections = data?.connections ?? [];
   const profileDirection = layout.isCompact ? 'column' : 'row';
   const readinessDirection = layout.isCompact || (layout.isLandscape && !layout.isTablet) ? 'column' : 'row';
   const avatarSize = layout.isTablet ? 88 : layout.isCompact ? 64 : 72;
+  const readiness = user?.readiness ?? 0;
 
   return (
     <ResponsiveScreen>
@@ -42,15 +49,15 @@ export default function ProfileScreen() {
               }}
             >
               <AppText variant="headline" style={{ color: colors.background }}>
-                {mockUser.avatar}
+                {user?.avatar ?? 'S'}
               </AppText>
             </View>
             <View style={{ flex: 1, minWidth: 0, width: profileDirection === 'column' ? '100%' : undefined }}>
               <AppText variant="headline" numberOfLines={1}>
-                {mockUser.name}
+                {user?.name ?? ''}
               </AppText>
               <AppText variant="body" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }} numberOfLines={3}>
-                {mockUser.title} • {mockUser.gym}
+                {user ? `${user.title} • ${user.gym}` : ''}
               </AppText>
             </View>
             <Settings color={colors.textMuted} size={22} />
@@ -60,15 +67,15 @@ export default function ProfileScreen() {
             <ProgressRing
               size={layout.isTablet ? 108 : 88}
               strokeWidth={9}
-              progress={mockUser.readiness / 100}
+              progress={readiness / 100}
               label={t('common.ready')}
-              value={`${mockUser.readiness}`}
+              value={`${readiness}`}
               accent={colors.neon}
             />
             <View style={{ flex: 1, width: readinessDirection === 'column' ? '100%' : undefined }}>
               <AppText variant="bodyStrong">{t('profile.currentPlan')}</AppText>
               <AppText variant="body" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }}>
-                {t('profile.currentPlanSubtitle', { plan: mockUser.plan })}
+                {t('profile.currentPlanSubtitle', { plan: user?.plan ?? '' })}
               </AppText>
             </View>
           </View>
@@ -98,9 +105,23 @@ export default function ProfileScreen() {
         </View>
       </GlassCard>
 
+      <SectionHeader title="Chỉ số cơ thể" subtitle="BMI và plan được tính từ chiều cao, cân nặng, giới tính trong hồ sơ." style={{ marginTop: layout.sectionGap }} />
+      <GlassCard>
+        <View style={{ padding: layout.cardPadding, gap: layout.compactGutter }}>
+          <View style={{ flexDirection: layout.isCompact ? 'column' : 'row', gap: layout.compactGutter }}>
+            <BodyStat label="BMI" value={user?.bmi ? String(user.bmi) : 'Chưa có'} />
+            <BodyStat label="Nhóm" value={user?.bmiCategory ?? 'Chưa đủ dữ liệu'} />
+            <BodyStat label="Giới tính" value={user?.gender ?? 'other'} />
+          </View>
+          <AppText variant="body" color="textMuted">
+            {user?.planRecommendation ?? user?.plan ?? ''}
+          </AppText>
+        </View>
+      </GlassCard>
+
       <SectionHeader title={t('profile.badges')} subtitle={t('profile.badgesSubtitle')} style={{ marginTop: layout.sectionGap }} />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: layout.compactGutter }}>
-        {mockBadges.map((badge) => (
+        {badges.length ? badges.map((badge) => (
           <View
             key={badge}
             style={{
@@ -121,12 +142,14 @@ export default function ProfileScreen() {
               {badge}
             </AppText>
           </View>
-        ))}
+        )) : (
+          <EmptyState icon={<Shield color={colors.neon} size={22} />} title="Chưa có huy hiệu" body="Huy hiệu sẽ xuất hiện sau khi bạn hoàn thành workout." />
+        )}
       </View>
 
       <SectionHeader title={t('profile.connections')} subtitle={t('profile.connectionsSubtitle')} style={{ marginTop: layout.sectionGap }} />
       <View style={{ gap: layout.gutter }}>
-        {mockConnections.map((connection) => {
+        {connections.length ? connections.map((connection) => {
           const Icon = connectionIcons[connection.id as keyof typeof connectionIcons] ?? Dumbbell;
 
           return (
@@ -161,9 +184,56 @@ export default function ProfileScreen() {
               </View>
             </GlassCard>
           );
-        })}
+        }) : (
+          <EmptyState icon={<Cloud color={colors.neon} size={22} />} title="Chưa có kết nối" body="Backend chưa trả trạng thái tích hợp." />
+        )}
       </View>
+
+      <Pressable
+        onPress={() => {
+          clearAuthSession();
+          router.replace('/sign-in');
+        }}
+        style={{
+          minHeight: layout.minTouchTarget,
+          borderRadius: radii.xl,
+          borderWidth: 1,
+          borderColor: colors.orangeSoft,
+          backgroundColor: colors.orangeSoft,
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginTop: layout.sectionGap,
+          paddingHorizontal: layout.cardPadding
+        }}
+      >
+        <AppText variant="bodyStrong" style={{ color: colors.orange }}>
+          Đăng xuất
+        </AppText>
+      </Pressable>
     </ResponsiveScreen>
+  );
+}
+
+function BodyStat({ label, value }: { label: string; value: string }) {
+  const layout = useResponsiveLayout();
+
+  return (
+    <View
+      style={{
+        flex: 1,
+        minHeight: layout.minTouchTarget,
+        borderRadius: radii.md,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        padding: layout.compactGutter
+      }}
+    >
+      <AppText variant="caption" color="textMuted" numberOfLines={1}>
+        {label}
+      </AppText>
+      <AppText variant="bodyStrong" style={{ marginTop: 4 }} numberOfLines={1}>
+        {value}
+      </AppText>
+    </View>
   );
 }
 

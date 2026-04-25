@@ -1,18 +1,21 @@
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Dumbbell, Info, ListChecks } from 'lucide-react-native';
+import { ArrowLeft, Dumbbell, Info, ListChecks, Play } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
-import { AppText, GlassCard, ResponsiveScreen, SectionHeader } from '@/components/ui';
-import { getExerciseWithMedia } from '@/data/exercises';
+import { AppText, GlassCard, NeonButton, ResponsiveScreen, SectionHeader } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
 import { useResponsiveLayout } from '@/lib/responsive';
 import { colors, radii } from '@/lib/theme';
+import { useCreateExerciseTask, useExercise } from '@/hooks/useApiData';
+import { useAppStore } from '@/store/useAppStore';
 
 export default function ExerciseDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const layout = useResponsiveLayout();
   const { t } = useI18n();
-  const exercise = getExerciseWithMedia(id);
+  const { data: exercise } = useExercise(id);
+  const createExerciseTask = useCreateExerciseTask();
+  const setCurrentWorkout = useAppStore((state) => state.setCurrentWorkout);
   const detailMediaSource = exercise?.media?.gif ?? exercise?.media?.image;
   const detailMediaIsGif = Boolean(exercise?.media?.gif);
   const muscleGroups = getUniqueMuscleGroups([
@@ -48,7 +51,7 @@ export default function ExerciseDetailScreen() {
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                 <Dumbbell color={colors.neon} size={42} />
                 <AppText variant="bodyStrong" style={{ marginTop: layout.compactGutter }}>
-                  {t('exercise.mockImage')}
+                  {t('exercise.noMedia')}
                 </AppText>
               </View>
             )}
@@ -72,6 +75,25 @@ export default function ExerciseDetailScreen() {
             <AppText variant="caption" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }}>
               {detailMediaIsGif ? t('exercise.usingGif') : t('exercise.usingImage')}
             </AppText>
+          ) : null}
+          {exercise ? (
+            <View style={{ marginTop: layout.gutter }}>
+              <NeonButton
+                label={createExerciseTask.isPending ? 'Đang tạo task...' : 'Tập ngay'}
+                icon={<Play color={colors.background} fill={colors.background} size={16} />}
+                disabled={createExerciseTask.isPending}
+                onPress={() => {
+                  void createExerciseTask.mutateAsync(exercise.id).then(({ plan }) => {
+                    setCurrentWorkout(plan, {
+                      currentExerciseIndex: 0,
+                      completedExerciseIndexes: [],
+                      startedAt: Date.now()
+                    });
+                    router.push('/workout/process');
+                  });
+                }}
+              />
+            </View>
           ) : null}
         </View>
       </GlassCard>

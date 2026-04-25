@@ -2,8 +2,8 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { storage } from '@/lib/storage';
 import type { AppStats } from '@/types/app';
-import type { WorkoutPlan } from '@/features/ai-chat';
 import type { AppLanguage } from '@/lib/i18n';
+import type { AuthUser, WorkoutPlan } from '@/types/api';
 
 type ActiveWorkoutSession = {
   currentExerciseIndex: number;
@@ -15,6 +15,8 @@ type AppState = {
   hasSeenOnboarding: boolean;
   activeTab: 'home' | 'library' | 'train' | 'progress' | 'profile';
   profileName: string;
+  authToken: string | null;
+  authUser: AuthUser | null;
   language: AppLanguage;
   stats: AppStats;
   currentWorkoutPlan: WorkoutPlan | null;
@@ -22,6 +24,9 @@ type AppState = {
   setHasSeenOnboarding: (value: boolean) => void;
   setActiveTab: (tab: AppState['activeTab']) => void;
   setProfileName: (name: string) => void;
+  setAuthSession: (token: string, user: AuthUser) => void;
+  updateAuthUser: (user: AuthUser) => void;
+  clearAuthSession: () => void;
   setLanguage: (language: AppLanguage) => void;
   patchStats: (stats: Partial<AppStats>) => void;
   setCurrentWorkout: (plan: WorkoutPlan, session: ActiveWorkoutSession) => void;
@@ -35,6 +40,8 @@ export const useAppStore = create<AppState>()(
       hasSeenOnboarding: false,
       activeTab: 'home',
       profileName: 'Shado',
+      authToken: null,
+      authUser: null,
       language: 'vi',
       stats: {
         dailyVolume: 8420,
@@ -46,6 +53,26 @@ export const useAppStore = create<AppState>()(
       setHasSeenOnboarding: (value) => set({ hasSeenOnboarding: value }),
       setActiveTab: (tab) => set({ activeTab: tab }),
       setProfileName: (name) => set({ profileName: name }),
+      setAuthSession: (token, user) =>
+        set({
+          authToken: token,
+          authUser: user,
+          profileName: user.name,
+          hasSeenOnboarding: user.hasSeenOnboarding
+        }),
+      updateAuthUser: (user) =>
+        set({
+          authUser: user,
+          profileName: user.name,
+          hasSeenOnboarding: user.hasSeenOnboarding
+        }),
+      clearAuthSession: () =>
+        set({
+          authToken: null,
+          authUser: null,
+          currentWorkoutPlan: null,
+          currentWorkoutSession: null
+        }),
       setLanguage: (language) => set({ language }),
       patchStats: (stats) =>
         set((state) => ({

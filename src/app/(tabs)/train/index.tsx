@@ -4,15 +4,16 @@ import { Lightbulb, Timer, Dumbbell, ShieldCheck, Play, Activity, RefreshCw } fr
 import { useState, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, TextInput, View } from 'react-native';
 import { AppText, GlassCard, LogoMark, NeonButton, ResponsiveScreen, SectionHeader } from '@/components/ui';
-import { generateWorkoutPlan, hasOpenRouterConfig, type WorkoutPlan, type WorkoutTip } from '@/features/ai-chat';
 import { useI18n } from '@/lib/i18n';
 import { useResponsiveLayout } from '@/lib/responsive';
 import { colors, gradients, radii } from '@/lib/theme';
 import { useAppStore } from '@/store/useAppStore';
+import { useGenerateWorkoutPlan } from '@/hooks/useApiData';
+import type { WorkoutPlan, WorkoutTip } from '@/types/api';
 
 type TrainTab = 'plan' | 'tips';
 
-const DEFAULT_GOAL = 'Build a 50 minute upper body workout for muscle gain with simple coaching tips.';
+const DEFAULT_GOAL = 'Tạo buổi tập toàn thân 40 phút, vừa sức, có mẹo kỹ thuật và hồi phục.';
 
 export default function TrainScreen() {
   const layout = useResponsiveLayout();
@@ -20,18 +21,19 @@ export default function TrainScreen() {
   const setCurrentWorkout = useAppStore((state) => state.setCurrentWorkout);
   const currentWorkoutPlan = useAppStore((state) => state.currentWorkoutPlan);
   const currentWorkoutSession = useAppStore((state) => state.currentWorkoutSession);
+  const generateWorkoutPlan = useGenerateWorkoutPlan();
   const [goal, setGoal] = useState(DEFAULT_GOAL);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<TrainTab>('plan');
-  const [lastSource, setLastSource] = useState<'openrouter' | 'fallback'>(hasOpenRouterConfig() ? 'openrouter' : 'fallback');
+  const [lastSource, setLastSource] = useState<WorkoutPlan['source']>('rule_based');
   const [plan, setPlan] = useState<WorkoutPlan | null>(null);
 
   async function handleGeneratePlan() {
     setIsLoading(true);
     try {
-      const result = await generateWorkoutPlan(goal.trim() || DEFAULT_GOAL);
+      const result = await generateWorkoutPlan.mutateAsync({ goal: goal.trim() || DEFAULT_GOAL });
       setPlan(result.plan);
-      setLastSource(result.source);
+      setLastSource(result.plan.source);
       setActiveTab('plan');
       setCurrentWorkout(result.plan, {
         currentExerciseIndex: 0,
@@ -59,7 +61,7 @@ export default function TrainScreen() {
       <GlassCard style={{ marginTop: layout.sectionGap }}>
         <LinearGradient colors={gradients.panel as unknown as [string, string, string]} style={{ padding: layout.cardPadding }}>
           <AppText variant="eyebrow" style={{ color: colors.neon }}>
-            {lastSource === 'openrouter' ? t('train.openrouterEnabled') : t('train.fallbackReady')}
+            {lastSource === 'openrouter' ? t('train.openrouterEnabled') : t('train.localPlannerReady')}
           </AppText>
           <AppText variant="headline" style={{ marginTop: layout.compactGutter }}>
             {t('train.title')}
@@ -119,7 +121,7 @@ export default function TrainScreen() {
         />
       </View>
 
-      {plan ? activeTab === 'plan' ? <PlanTab plan={plan} /> : <TipsTab plan={plan} /> : <EmptyState isConfigured={hasOpenRouterConfig()} />}
+      {plan ? activeTab === 'plan' ? <PlanTab plan={plan} /> : <TipsTab plan={plan} /> : <EmptyState />}
     </ResponsiveScreen>
   );
 }
@@ -429,7 +431,7 @@ function InfoPill({
   );
 }
 
-function EmptyState({ isConfigured }: { isConfigured: boolean }) {
+function EmptyState() {
   const layout = useResponsiveLayout();
   const { t } = useI18n();
 
@@ -438,7 +440,7 @@ function EmptyState({ isConfigured }: { isConfigured: boolean }) {
       <View style={{ padding: layout.cardPadding, gap: layout.compactGutter }}>
         <AppText variant="title">{t('train.noPlan')}</AppText>
         <AppText variant="body" color="textMuted">
-          {isConfigured ? t('train.noPlanSubtitle') : t('train.noPlanFallback')}
+          {t('train.noPlanSubtitle')}
         </AppText>
       </View>
     </GlassCard>

@@ -2,16 +2,25 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Activity, Award, Flame, TrendingUp } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
-import { AppText, GlassCard, LogoMark, ProgressRing, ResponsiveScreen, SectionHeader } from '@/components/ui';
+import { AppText, EmptyState, GlassCard, LogoMark, ProgressRing, ResponsiveScreen, SectionHeader } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
-import { mockMetrics, mockPersonalRecords, mockProgressWeeks, mockUser } from '@/data/mock-app';
 import { useResponsiveLayout } from '@/lib/responsive';
 import { colors, gradients, radii } from '@/lib/theme';
+import { useAppData } from '@/hooks/useApiData';
+import type { AppMetric } from '@/types/api';
 
 export default function ProgressScreen() {
   const layout = useResponsiveLayout();
   const { t } = useI18n();
-  const maxVolume = Math.max(...mockProgressWeeks.map((week) => week.volume));
+  const { data } = useAppData();
+  const user = data?.user;
+  const metrics = data?.metrics ?? [];
+  const progressWeeks = data?.progressWeeks ?? [];
+  const personalRecords = data?.personalRecords ?? [];
+  const workoutLogs = data?.workoutLogs ?? [];
+  const weeklyDone = user?.weeklyDone ?? 0;
+  const weeklyGoal = user?.weeklyGoal ?? 1;
+  const maxVolume = Math.max(...progressWeeks.map((week) => week.volume), 1);
   const heroDirection = layout.isCompact || (layout.isLandscape && !layout.isTablet) ? 'column' : 'row';
   const chartHeight = Math.min(layout.height * 0.28, layout.isTablet ? 240 : 180);
 
@@ -27,7 +36,7 @@ export default function ProgressScreen() {
                 {t('progress.weeklyOverview')}
               </AppText>
               <AppText variant="headline" style={{ marginTop: layout.compactGutter }}>
-                {t('progress.weeklyDone', { done: mockUser.weeklyDone, goal: mockUser.weeklyGoal })}
+                {t('progress.weeklyDone', { done: weeklyDone, goal: weeklyGoal })}
               </AppText>
               <AppText variant="body" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }}>
                 {t('progress.weeklySubtitle')}
@@ -36,9 +45,9 @@ export default function ProgressScreen() {
             <ProgressRing
               size={layout.isTablet ? 116 : 98}
               strokeWidth={10}
-              progress={mockUser.weeklyDone / mockUser.weeklyGoal}
+              progress={weeklyDone / weeklyGoal}
               label={t('common.goal')}
-              value={`${Math.round((mockUser.weeklyDone / mockUser.weeklyGoal) * 100)}%`}
+              value={`${Math.round((weeklyDone / weeklyGoal) * 100)}%`}
               accent={colors.neon}
             />
           </View>
@@ -46,7 +55,7 @@ export default function ProgressScreen() {
       </GlassCard>
 
       <View style={{ flexDirection: 'row', gap: layout.compactGutter, marginTop: layout.compactGutter }}>
-        {mockMetrics.map((metric) => (
+        {metrics.map((metric) => (
           <MetricCard key={metric.id} metric={metric} />
         ))}
       </View>
@@ -55,7 +64,7 @@ export default function ProgressScreen() {
       <GlassCard>
         <View style={{ padding: layout.cardPadding }}>
           <View style={{ minHeight: chartHeight, flexDirection: 'row', alignItems: 'flex-end', gap: layout.compactGutter }}>
-            {mockProgressWeeks.map((week) => {
+            {progressWeeks.map((week) => {
               const barHeight = Math.max(layout.minTouchTarget * 0.58, (week.volume / maxVolume) * chartHeight * 0.86);
 
               return (
@@ -82,7 +91,7 @@ export default function ProgressScreen() {
 
       <SectionHeader title={t('progress.personalRecords')} subtitle={t('progress.personalRecordsSubtitle')} style={{ marginTop: layout.sectionGap }} />
       <View style={{ gap: layout.gutter }}>
-        {mockPersonalRecords.map((record) => (
+        {personalRecords.map((record) => (
           <GlassCard key={record.id}>
             <View style={{ padding: layout.cardPadding, flexDirection: 'row', alignItems: 'center', gap: layout.compactGutter }}>
               <View
@@ -118,6 +127,38 @@ export default function ProgressScreen() {
         ))}
       </View>
 
+      <SectionHeader title="Lịch sử tập" subtitle="Các buổi tập đã lưu vào SQLite backend." style={{ marginTop: layout.sectionGap }} />
+      <View style={{ gap: layout.gutter }}>
+        {workoutLogs.length ? workoutLogs.map((log) => (
+          <GlassCard key={log.id}>
+            <View style={{ padding: layout.cardPadding, flexDirection: 'row', alignItems: 'center', gap: layout.compactGutter }}>
+              <View
+                style={{
+                  width: layout.smallIconSize,
+                  aspectRatio: 1,
+                  borderRadius: radii.md,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: colors.neonSoft
+                }}
+              >
+                <Activity color={colors.neon} size={18} />
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <AppText variant="bodyStrong" numberOfLines={1}>
+                  {log.title}
+                </AppText>
+                <AppText variant="caption" color="textMuted" style={{ marginTop: layout.compactGutter / 2 }} numberOfLines={1}>
+                  {Math.round(log.durationSeconds / 60)} min • {log.completedExercises}/{log.totalExercises} bài • {log.calories} kcal
+                </AppText>
+              </View>
+            </View>
+          </GlassCard>
+        )) : (
+          <EmptyState icon={<Activity color={colors.neon} size={22} />} title="Chưa có lịch sử tập" body="Kết thúc một workout để lưu log vào SQLite." />
+        )}
+      </View>
+
       <SectionHeader title={t('progress.signals')} subtitle={t('progress.signalsSubtitle')} style={{ marginTop: layout.sectionGap }} />
       <View style={{ flexDirection: layout.isCompact ? 'column' : 'row', gap: layout.gutter }}>
         <SignalCard icon={<Activity color={colors.neon} size={18} />} label="HRV" value="68 ms" />
@@ -128,7 +169,7 @@ export default function ProgressScreen() {
   );
 }
 
-function MetricCard({ metric }: { metric: (typeof mockMetrics)[number] }) {
+function MetricCard({ metric }: { metric: AppMetric }) {
   const layout = useResponsiveLayout();
 
   return (

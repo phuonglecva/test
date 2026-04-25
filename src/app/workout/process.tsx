@@ -7,6 +7,7 @@ import { useI18n } from '@/lib/i18n';
 import { useResponsiveLayout } from '@/lib/responsive';
 import { colors, radii } from '@/lib/theme';
 import { useAppStore } from '@/store/useAppStore';
+import { useCreateWorkoutLog } from '@/hooks/useApiData';
 
 export default function WorkoutProcessScreen() {
   const layout = useResponsiveLayout();
@@ -16,6 +17,7 @@ export default function WorkoutProcessScreen() {
   const currentWorkoutSession = useAppStore((state) => state.currentWorkoutSession);
   const setCurrentWorkout = useAppStore((state) => state.setCurrentWorkout);
   const clearCurrentWorkout = useAppStore((state) => state.clearCurrentWorkout);
+  const createWorkoutLog = useCreateWorkoutLog();
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   useEffect(() => {
@@ -93,9 +95,26 @@ export default function WorkoutProcessScreen() {
     );
   }
 
-  function finishWorkout() {
+  async function finishWorkout() {
+    const calories = Math.max(120, workoutPlan.exercises.length * 35);
+    const durationSeconds = Math.max(0, Math.floor((Date.now() - workoutSession.startedAt) / 1000));
+
+    await createWorkoutLog.mutateAsync({
+      title: workoutPlan.title,
+      focus: workoutPlan.focus,
+      durationSeconds,
+      calories,
+      completedExercises: completedCount,
+      totalExercises: workoutPlan.exercises.length,
+      startedAt: new Date(workoutSession.startedAt).toISOString(),
+      exercises: workoutPlan.exercises.map((item, index) => ({
+        ...item,
+        completed: workoutSession.completedExerciseIndexes.includes(index)
+      }))
+    });
+
     patchStats({
-      calories: useAppStore.getState().stats.calories + Math.max(120, workoutPlan.exercises.length * 35),
+      calories: useAppStore.getState().stats.calories + calories,
       streakDays: useAppStore.getState().stats.streakDays + 1
     });
     clearCurrentWorkout();
@@ -191,7 +210,14 @@ export default function WorkoutProcessScreen() {
             onPress={completeCurrentExercise}
           />
 
-          <SecondaryAction label={t('process.finish')} icon={<PauseCircle color={colors.orange} size={16} />} onPress={finishWorkout} accent="orange" />
+          <SecondaryAction
+            label={createWorkoutLog.isPending ? 'Đang lưu...' : t('process.finish')}
+            icon={<PauseCircle color={colors.orange} size={16} />}
+            onPress={() => {
+              void finishWorkout();
+            }}
+            accent="orange"
+          />
         </View>
       </View>
     </ResponsiveScreen>

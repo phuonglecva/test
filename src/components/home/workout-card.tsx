@@ -129,7 +129,7 @@ export function WorkoutCard({
                 {t('workoutCard.burnEstimate')}
               </AppText>
               <AppText variant="bodyStrong" style={{ color: accentColor, marginTop: layout.compactGutter / 4 }}>
-                {calories ? `${calories} kcal` : t('workoutCard.mockPlan')}
+                {calories ? `${calories} kcal` : t('workoutCard.apiPlan')}
               </AppText>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>

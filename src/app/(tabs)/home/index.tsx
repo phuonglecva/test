@@ -1,20 +1,29 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Bell, Bot, MessageCircle, Play, Sparkles, Zap } from 'lucide-react-native';
+import { Bell, Bot, Dumbbell, MessageCircle, Play, Sparkles, Zap } from 'lucide-react-native';
 import { Pressable, ScrollView, View } from 'react-native';
 import { WorkoutCard } from '@/components/home';
-import { AppText, GlassCard, LogoMark, NeonButton, ProgressRing, ResponsiveScreen, SectionHeader } from '@/components/ui';
+import { AppText, EmptyState, GlassCard, LogoMark, NeonButton, ProgressRing, ResponsiveScreen, SectionHeader } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
 import { minTouchTarget, useResponsiveLayout } from '@/lib/responsive';
 import { colors, gradients, radii, shadows } from '@/lib/theme';
 import { formatDateLabel, getGreetingLabel } from '@/lib/utils';
-import { mockAiSuggestions, mockMetrics, mockRecommendedWorkouts, mockTodayPlan, mockUser } from '@/data/mock-app';
 import { useAppStore } from '@/store/useAppStore';
+import { useAppData } from '@/hooks/useApiData';
+import { config } from '@/config';
+import type { AiSuggestion, AppMetric, TodayPlanItem } from '@/types/api';
 
 export default function HomeScreen() {
   const layout = useResponsiveLayout();
   const { language, t } = useI18n();
-  const profileName = useAppStore((state) => state.profileName) || mockUser.name;
+  const { data } = useAppData();
+  const user = data?.user;
+  const metrics = data?.metrics ?? [];
+  const workouts = data?.recommendedWorkouts ?? [];
+  const suggestions = data?.aiSuggestions ?? [];
+  const todayPlan = data?.todayPlan ?? [];
+  const readiness = user?.readiness ?? 0;
+  const profileName = useAppStore((state) => state.profileName) || user?.name || config.defaultGreetingName;
   const heroDirection = layout.isCompact || (layout.isLandscape && !layout.isTablet) ? 'column' : 'row';
   const workoutCardWidth = layout.isTablet
     ? Math.min(360, layout.contentWidth * 0.46)
@@ -91,7 +100,7 @@ export default function HomeScreen() {
             <View style={{ flex: 1, minWidth: 0, width: heroDirection === 'column' ? '100%' : undefined }}>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: layout.compactGutter }}>
                 <Pill label={t('home.hero.live')} color={colors.neon} />
-                <Pill label={t('home.hero.mockConnections')} color={colors.orange} />
+                <Pill label={t('home.hero.backendStatus')} color={colors.orange} />
               </View>
 
               <AppText variant="title" style={{ marginTop: layout.compactGutter }}>
@@ -113,9 +122,9 @@ export default function HomeScreen() {
             <ProgressRing
               size={layout.isCompact ? 92 : layout.isTablet ? 122 : 106}
               strokeWidth={10}
-              progress={mockUser.readiness / 100}
+              progress={readiness / 100}
               label={t('home.readiness')}
-              value={`${mockUser.readiness}%`}
+              value={`${readiness}%`}
               accent={colors.neon}
             />
           </View>
@@ -123,7 +132,7 @@ export default function HomeScreen() {
       </GlassCard>
 
       <View style={{ flexDirection: 'row', gap: layout.compactGutter, marginTop: layout.compactGutter }}>
-        {mockMetrics.map((metric) => (
+        {metrics.map((metric) => (
           <MetricCard key={metric.id} metric={metric} />
         ))}
       </View>
@@ -137,7 +146,7 @@ export default function HomeScreen() {
       />
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: layout.gutter, paddingBottom: 2 }}>
-        {mockRecommendedWorkouts.map((workout) => (
+        {workouts.length ? workouts.map((workout) => (
           <WorkoutCard
             key={workout.id}
             id={workout.id}
@@ -150,7 +159,9 @@ export default function HomeScreen() {
             imageId={workout.imageId}
             style={{ width: workoutCardWidth }}
           />
-        ))}
+        )) : (
+          <EmptyState icon={<Dumbbell color={colors.neon} size={22} />} title="Chưa có workout" body="Backend chưa trả workout gợi ý." />
+        )}
       </ScrollView>
 
       <View
@@ -203,9 +214,11 @@ export default function HomeScreen() {
       />
 
       <View style={{ gap: layout.gutter }}>
-        {mockAiSuggestions.map((suggestion) => (
+        {suggestions.length ? suggestions.map((suggestion) => (
           <SuggestionCard key={suggestion.id} suggestion={suggestion} />
-        ))}
+        )) : (
+          <EmptyState icon={<Sparkles color={colors.neon} size={22} />} title="Chưa có insight" body="AI suggestions sẽ hiện khi backend có dữ liệu." />
+        )}
       </View>
 
       <SectionHeader
@@ -215,9 +228,11 @@ export default function HomeScreen() {
       />
       <GlassCard>
         <View style={{ padding: layout.cardPadding, gap: layout.compactGutter }}>
-          {mockTodayPlan.map((item) => (
+          {todayPlan.length ? todayPlan.map((item) => (
             <PlanRow key={item.id} item={item} />
-          ))}
+          )) : (
+            <EmptyState icon={<Dumbbell color={colors.neon} size={22} />} title="Kế hoạch trống" body="Tạo workout mới từ tab Train để bắt đầu." />
+          )}
         </View>
       </GlassCard>
     </ResponsiveScreen>
@@ -245,7 +260,7 @@ function Pill({ label, color }: { label: string; color: string }) {
   );
 }
 
-function MetricCard({ metric }: { metric: (typeof mockMetrics)[number] }) {
+function MetricCard({ metric }: { metric: AppMetric }) {
   const layout = useResponsiveLayout();
 
   return (
@@ -270,7 +285,7 @@ function MetricCard({ metric }: { metric: (typeof mockMetrics)[number] }) {
   );
 }
 
-function SuggestionCard({ suggestion }: { suggestion: (typeof mockAiSuggestions)[number] }) {
+function SuggestionCard({ suggestion }: { suggestion: AiSuggestion }) {
   const layout = useResponsiveLayout();
 
   return (
@@ -302,7 +317,7 @@ function SuggestionCard({ suggestion }: { suggestion: (typeof mockAiSuggestions)
   );
 }
 
-function PlanRow({ item }: { item: (typeof mockTodayPlan)[number] }) {
+function PlanRow({ item }: { item: TodayPlanItem }) {
   const layout = useResponsiveLayout();
   const { t } = useI18n();
 

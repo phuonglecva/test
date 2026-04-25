@@ -2,12 +2,13 @@ import { router } from 'expo-router';
 import { ArrowRight, Dumbbell, Sparkles, TrendingUp, Users } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { useMemo, useRef, useState } from 'react';
-import { FlatList, View } from 'react-native';
+import { FlatList, TextInput, View } from 'react-native';
 import { AppText, LogoMark, NeonButton, ResponsiveScreen } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
-import { clamp, useResponsiveLayout } from '@/lib/responsive';
+import { clamp, scaleFontSize, useResponsiveLayout } from '@/lib/responsive';
 import { colors, radii, shadows } from '@/lib/theme';
 import { useAppStore } from '@/store/useAppStore';
+import { useSaveOnboarding } from '@/hooks/useApiData';
 
 export default function OnboardingScreen() {
   const layout = useResponsiveLayout();
@@ -43,7 +44,18 @@ export default function OnboardingScreen() {
   );
   const listRef = useRef<FlatList<(typeof slides)[number]>>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const authUser = useAppStore((state) => state.authUser);
   const setHasSeenOnboarding = useAppStore((state) => state.setHasSeenOnboarding);
+  const updateAuthUser = useAppStore((state) => state.updateAuthUser);
+  const saveOnboarding = useSaveOnboarding();
+  const [name, setName] = useState(authUser?.name ?? '');
+  const [title, setTitle] = useState(authUser?.title ?? 'Intermediate lifter');
+  const [gym, setGym] = useState(authUser?.gym ?? 'District 1 Strength Lab');
+  const [plan, setPlan] = useState(authUser?.plan ?? 'Hypertrophy focus');
+  const [weeklyGoal, setWeeklyGoal] = useState(String(authUser?.weeklyGoal ?? 5));
+  const [heightCm, setHeightCm] = useState(authUser?.heightCm ? String(authUser.heightCm) : '');
+  const [weightKg, setWeightKg] = useState(authUser?.weightKg ? String(authUser.weightKg) : '');
+  const [gender, setGender] = useState(authUser?.gender ?? 'other');
   const slideGap = layout.gutter;
   const slideWidth = layout.contentWidth;
   const availableCardHeight =
@@ -156,6 +168,23 @@ export default function OnboardingScreen() {
                       <FeatureChip icon={<TrendingUp color={colors.orange} size={14} />} label={t('onboarding.progressChip')} />
                       <FeatureChip icon={<Users color={colors.neon} size={14} />} label={t('onboarding.findBuddy')} />
                     </View>
+
+                    {item.id === 'buddy' ? (
+                      <View style={{ marginTop: layout.gutter, gap: layout.compactGutter }}>
+                        <OnboardingInput value={name} onChangeText={setName} placeholder="Tên hiển thị" />
+                        <OnboardingInput value={title} onChangeText={setTitle} placeholder="Trình độ / mô tả ngắn" />
+                        <OnboardingInput value={gym} onChangeText={setGym} placeholder="Phòng tập" />
+                        <OnboardingInput value={plan} onChangeText={setPlan} placeholder="Mục tiêu hiện tại" />
+                        <OnboardingInput value={weeklyGoal} onChangeText={setWeeklyGoal} placeholder="Số buổi / tuần" keyboardType="number-pad" />
+                        <OnboardingInput value={heightCm} onChangeText={setHeightCm} placeholder="Chiều cao (cm)" keyboardType="number-pad" />
+                        <OnboardingInput value={weightKg} onChangeText={setWeightKg} placeholder="Cân nặng (kg)" keyboardType="number-pad" />
+                        <OnboardingInput
+                          value={gender}
+                          onChangeText={(value) => setGender(value === 'male' || value === 'female' ? value : 'other')}
+                          placeholder="Giới tính: male / female / other"
+                        />
+                      </View>
+                    ) : null}
                   </View>
                 </View>
               </View>
@@ -180,11 +209,31 @@ export default function OnboardingScreen() {
         <View style={{ marginTop: layout.gutter }}>
           <NeonButton
             size="lg"
-            label={t('auth.startFree')}
+            label={activeIndex < slides.length - 1 ? 'Tiếp tục' : saveOnboarding.isPending ? 'Đang lưu...' : t('auth.startFree')}
             icon={<ArrowRight color={colors.background} size={18} />}
             onPress={() => {
-              setHasSeenOnboarding(true);
-              router.replace('/home');
+              if (activeIndex < slides.length - 1) {
+                listRef.current?.scrollToIndex({ index: activeIndex + 1 });
+                setActiveIndex(activeIndex + 1);
+                return;
+              }
+
+              void saveOnboarding
+                .mutateAsync({
+                  name: name.trim() || authUser?.name || 'User',
+                  title: title.trim() || 'Intermediate lifter',
+                  gym: gym.trim() || 'Home gym',
+                  plan: plan.trim() || 'General fitness',
+                  weeklyGoal: Number(weeklyGoal) || 3,
+                  heightCm: heightCm ? Number(heightCm) : null,
+                  weightKg: weightKg ? Number(weightKg) : null,
+                  gender: gender === 'male' || gender === 'female' ? gender : 'other'
+                })
+                .then(({ user }) => {
+                  updateAuthUser(user);
+                  setHasSeenOnboarding(true);
+                  router.replace('/home');
+                });
             }}
           />
         </View>
@@ -216,5 +265,40 @@ function FeatureChip({ icon, label }: { icon: ReactNode; label: string }) {
         {label}
       </AppText>
     </View>
+  );
+}
+
+function OnboardingInput({
+  value,
+  onChangeText,
+  placeholder,
+  keyboardType
+}: {
+  value: string;
+  onChangeText: (value: string) => void;
+  placeholder: string;
+  keyboardType?: 'default' | 'number-pad';
+}) {
+  const layout = useResponsiveLayout();
+
+  return (
+    <TextInput
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder}
+      placeholderTextColor={colors.textSubtle}
+      keyboardType={keyboardType}
+      style={{
+        minHeight: layout.minTouchTarget,
+        borderRadius: radii.md,
+        borderWidth: 1,
+        borderColor: colors.surfaceBorder,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        color: colors.text,
+        paddingHorizontal: layout.cardPadding,
+        fontFamily: 'Inter_400Regular',
+        fontSize: scaleFontSize(14, layout.width)
+      }}
+    />
   );
 }

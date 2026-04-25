@@ -1,15 +1,15 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { ChevronRight, Dumbbell, Search } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Pressable, ScrollView, TextInput, View } from 'react-native';
-import { AppText, GlassCard, LogoMark, ResponsiveScreen, SectionHeader } from '@/components/ui';
-import { exercises, searchExercises } from '@/data/exercises';
+import { AppText, EmptyState, GlassCard, LogoMark, ResponsiveScreen, SectionHeader } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
 import { scaleFontSize, useResponsiveLayout } from '@/lib/responsive';
 import { colors, radii } from '@/lib/theme';
 import { getExerciseImageSource } from '@/lib/exercise-media';
 import type { Exercise } from '@/types/exercise';
+import { useExercises } from '@/hooks/useApiData';
 
 const DEFAULT_LIMIT = 18;
 
@@ -18,21 +18,9 @@ export default function LibraryScreen() {
   const { t } = useI18n();
   const [query, setQuery] = useState('');
   const [selectedBodyPart, setSelectedBodyPart] = useState('all');
-
-  const bodyParts = useMemo(() => {
-    const unique = Array.from(new Set(exercises.map((exercise) => exercise.body_part))).slice(0, 8);
-    return ['all', ...unique];
-  }, []);
-
-  const filteredExercises = useMemo(() => {
-    const base = searchExercises(query);
-    const filtered =
-      selectedBodyPart === 'all'
-        ? base
-        : base.filter((exercise) => exercise.body_part === selectedBodyPart);
-
-    return filtered.slice(0, DEFAULT_LIMIT);
-  }, [query, selectedBodyPart]);
+  const { data } = useExercises({ query, bodyPart: selectedBodyPart, limit: DEFAULT_LIMIT });
+  const bodyParts = ['all', ...(data?.bodyParts ?? []).slice(0, 8)];
+  const filteredExercises = data?.items ?? [];
 
   return (
     <ResponsiveScreen keyboardAware>
@@ -121,9 +109,11 @@ export default function LibraryScreen() {
       />
 
       <View style={{ gap: layout.gutter }}>
-        {filteredExercises.map((exercise) => (
+        {filteredExercises.length ? filteredExercises.map((exercise) => (
           <ExerciseCard key={exercise.id} exercise={exercise} />
-        ))}
+        )) : (
+          <EmptyState icon={<Search color={colors.neon} size={22} />} title="Không có bài tập" body="Thử đổi từ khóa hoặc nhóm cơ khác." />
+        )}
       </View>
     </ResponsiveScreen>
   );

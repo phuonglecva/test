@@ -3,18 +3,31 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, CheckCircle2, Clock3, Dumbbell, Flame, Play } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { Pressable, View } from 'react-native';
-import { AppText, GlassCard, NeonButton, ProgressRing, ResponsiveScreen, SectionHeader } from '@/components/ui';
-import { mockRecommendedWorkouts, mockTodayPlan } from '@/data/mock-app';
+import { AppText, EmptyState, GlassCard, NeonButton, ProgressRing, ResponsiveScreen, SectionHeader } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
 import { useResponsiveLayout } from '@/lib/responsive';
 import { colors, gradients, radii } from '@/lib/theme';
+import { useWorkout } from '@/hooks/useApiData';
 
 export default function WorkoutDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const layout = useResponsiveLayout();
   const { t } = useI18n();
-  const workout = mockRecommendedWorkouts.find((item) => item.id === id) ?? mockRecommendedWorkouts[0];
+  const { data } = useWorkout(id);
+  const workout = data?.workout;
+  const todayPlan = data?.todayPlan ?? [];
   const heroDirection = layout.isCompact || (layout.isLandscape && !layout.isTablet) ? 'column' : 'row';
+
+  if (!workout) {
+    return (
+      <ResponsiveScreen bottomInset="none">
+        <BackButton />
+        <View style={{ marginTop: layout.sectionGap }}>
+          <EmptyState icon={<Dumbbell color={colors.neon} size={22} />} title="Không tìm thấy workout" body="Workout này chưa có trong backend." />
+        </View>
+      </ResponsiveScreen>
+    );
+  }
 
   return (
     <ResponsiveScreen bottomInset="none">
@@ -25,7 +38,7 @@ export default function WorkoutDetailScreen() {
           <View style={{ flexDirection: heroDirection, alignItems: 'center', gap: layout.gutter }}>
             <View style={{ flex: 1, minWidth: 0, width: heroDirection === 'column' ? '100%' : undefined }}>
               <AppText variant="eyebrow" style={{ color: colors.neon }}>
-                {t('workoutCard.mockPlan')}
+                {t('workoutCard.apiPlan')}
               </AppText>
               <AppText variant="headline" style={{ marginTop: layout.compactGutter }}>
                 {workout.title}
@@ -62,7 +75,7 @@ export default function WorkoutDetailScreen() {
 
       <SectionHeader title={t('train.exercisesTitle')} subtitle={t('home.todayPlanSubtitle')} style={{ marginTop: layout.sectionGap }} />
       <View style={{ gap: layout.gutter }}>
-        {mockTodayPlan.map((item, index) => (
+        {todayPlan.map((item, index) => (
           <GlassCard key={item.id}>
             <View style={{ padding: layout.cardPadding, flexDirection: 'row', alignItems: 'center', gap: layout.compactGutter }}>
               <View
